@@ -19,6 +19,9 @@ int yylex(void);
 void inserer(const char* state, const char* nomEntite, const char* codeEntite,
             const char* type, const char* val);
 
+
+ 
+
 %}
 
 lettre [a-zA-Z]

@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include "table_symboles.h"
 
-static Symbole table[MAX_SYMBOLES];
-static int nb_symboles = 0;
+Symbole table[MAX_SYMBOLES];
+int nb_symboles = 0;
 char portee_actuelle[MAX_PORTEE_LEN] = "global";
 static char scope_stack[MAX_SCOPE_DEPTH][MAX_PORTEE_LEN];
 static int scope_depth = 0;
@@ -19,11 +19,9 @@ void init_scope_stack(void) {
 }
 
 void entrer_portee(const char* nom_portee) {
-    static int compteur_portee = 0;
-    compteur_portee++;
-    char nouvelle_portee[MAX_PORTEE_LEN];
-    snprintf(nouvelle_portee, MAX_PORTEE_LEN, "%s_%d", nom_portee, compteur_portee);
-    strcpy(portee_actuelle, nouvelle_portee);
+    static int compteur = 0;
+    compteur++;
+    snprintf(portee_actuelle, MAX_PORTEE_LEN, "%s_%d", nom_portee, compteur);
 }
 
 void sortir_portee() {
@@ -200,11 +198,11 @@ void liberer_table(void) {
 }
 
 int variable_existe(const char* identifiant) {
-    // Parcours inverse pour trouver la déclaration la plus récente
+    // Parcourt la table à l'envers pour trouver la déclaration la plus récente
     for (int i = nb_symboles - 1; i >= 0; i--) {
         if (strcmp(table[i].nomEntite, identifiant) == 0) {
-            // Vérifie si c'est dans la portée actuelle ou une portée englobante
-            if (strcmp(table[i].portee, portee_actuelle) == 0 ||
+            // Vérifie si c'est dans la portée actuelle ou une portée parente
+            if (strstr(portee_actuelle, table[i].portee) || 
                 strcmp(table[i].portee, "global") == 0) {
                 return 1;
             }
@@ -217,30 +215,19 @@ int variable_existe(const char* identifiant) {
 double get_valeur_variable(const char* identifiant) {
     for (int i = nb_symboles - 1; i >= 0; i--) {
         if (strcmp(table[i].nomEntite, identifiant) == 0) {
-            // Vérifie la portée
-            if (strcmp(table[i].portee, portee_actuelle) == 0 ||
+            // Accepte si dans portée actuelle ou parente
+            if (strstr(portee_actuelle, table[i].portee) || 
                 strcmp(table[i].portee, "global") == 0) {
                 
-                // Si c'est une variable de boucle, on considère qu'elle est numérique
-                if (strcmp(table[i].codeEntite, "var_boucle") == 0) {
+                if (strcmp(table[i].codeEntite, "variable") == 0) {
                     return table[i].val ? atof(table[i].val) : 0.0;
                 }
-                
-                // Gestion selon le type
-                if (strcmp(table[i].type, "int") == 0 ||
-                    strcmp(table[i].type, "float") == 0 || 
-                    strcmp(table[i].type, "double") == 0) {
-                    return table[i].val ? atof(table[i].val) : 0.0;
-                }
-                else {
-                    return 0.0; // Type non numérique
-                }
+                return 0.0; // Pour les autres types
             }
         }
     }
-    return 0.0; // Variable non trouvée
+    return 0.0;
 }
-
 
 void mettre_a_jour_variable(const char* nom, double valeur) {
     for (int i = nb_symboles-1; i >= 0; i--) {
@@ -251,5 +238,11 @@ void mettre_a_jour_variable(const char* nom, double valeur) {
             table[i].val = strdup(val_str);
             return;
         }
+    }
+}
+
+void inserer_multiple(const char* type, char** noms, int count, char** valeurs) {
+    for (int i = 0; i < count; i++) {
+        inserer("valide", noms[i], "variable", type, valeurs ? valeurs[i] : "");
     }
 }

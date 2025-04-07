@@ -1,9 +1,13 @@
-public class TestFinal {
+public class TestAvance {
     public static void main(String[] args) {
-        for(int i = 0; i < 2; i++) {       // Boucle 1
-            for(int j = 0; j < 2; j++) {   // Boucle 2 (i différent)
-                System.out.println(j);
-            }
+        int a = 5, b = 2;
+        double c = 3.5;
+        String msg = "Résultat: ";
+        
+        System.out.println(msg + (a * b + c));
+        
+        for (int i = 0; i < 3; i++) {
+            System.out.println("i = " + i);
         }
     }
 }

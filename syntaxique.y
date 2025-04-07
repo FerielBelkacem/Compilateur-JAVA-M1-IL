@@ -203,10 +203,17 @@ statement:
     | io_statement
     ;
 
-declaration_statement:
-    type idf ';'
-    | type idf '=' expression ';'
-    ;
+ declaration_statement:
+    type declarator_list ';' ;
+
+declarator_list:
+    declarator
+    | declarator_list ',' declarator ;
+
+declarator:
+    idf
+    | idf '=' expression ;
+ 
 
 expression_statement:
     expression ';'
@@ -307,8 +314,20 @@ comparison_expression:
     additive_expression { $$ = $1; }
     | additive_expression eq additive_expression { $$ = $1 == $3; }
     | additive_expression neq additive_expression { $$ = $1 != $3; }
-    | additive_expression '<' additive_expression { $$ = $1 < $3; }
-    | additive_expression '>' additive_expression { $$ = $1 > $3; }
+    | additive_expression '>' additive_expression {
+        if ($1 == 0 || $3 == 0) {
+            yyerror("Variable non initialisée dans comparaison");
+            YYERROR;
+        }
+        $$ = $1 > $3;
+    }
+    | additive_expression '<' additive_expression {
+        if ($1 == 0 || $3 == 0) {
+            yyerror("Variable non initialisée dans comparaison");
+            YYERROR;
+        }
+        $$ = $1 < $3;
+    }
     | additive_expression leq additive_expression { $$ = $1 <= $3; }
     | additive_expression geq additive_expression { $$ = $1 >= $3; }
     ;
@@ -317,16 +336,16 @@ primary_expression:
     idf {
         if (!variable_existe($1)) {
             yyerror("Variable non déclarée");
-            $$ = 0.0;
-        } else {
-            $$ = get_valeur_variable($1);
+            free($1);
+            YYERROR;
         }
-        free($1); // Libère la mémoire allouée par strdup()
+        $$ = get_valeur_variable($1);
+        free($1);
     }
-    | entier { $$ = (double)$1; }  // Conversion explicite
-    | decimal_num { $$ = $1; }     // Utilisation directe
-    | chaine { $$ = 0.0; }         // Valeur par défaut pour les chaînes
-    | '(' expression ')' { $$ = (double)$2; }
+    | entier { $$ = $1; }
+    | decimal_num { $$ = $1; }
+    | chaine { $$ = 0; }
+    | '(' expression ')' { $$ = $2; }
     ;
 
 additive_expression:
@@ -371,7 +390,24 @@ int main() {
 }
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erreur syntaxique à la ligne %d, colonne %d : %s\n", _nb_ligne, _col, s);
+    extern char *yytext;
+    extern int _nb_ligne, _col;
+    extern char portee_actuelle[MAX_PORTEE_LEN];
+    extern Symbole table[MAX_SYMBOLES];
+    extern int nb_symboles;
+
+    fprintf(stderr, "Erreur à ligne %d, colonne %d : %s\n", _nb_ligne, _col, s);
+    fprintf(stderr, "Contexte : %s\n", yytext);
+    
+    fprintf(stderr, "Portée actuelle : %s\n", portee_actuelle);
+    
+    fprintf(stderr, "Variables dans portée :\n");
+    for (int i = 0; i < nb_symboles; i++) {
+        if (strstr(portee_actuelle, table[i].portee)) {
+            fprintf(stderr, "- %s (type: %s, valeur: %s)\n", 
+                   table[i].nomEntite, table[i].type, table[i].val);
+        }
+    }
 }
 
 int yywrap(void) {
