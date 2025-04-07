@@ -106,6 +106,17 @@ void inserer(const char* state, const char* nomEntite, const char* codeEntite,
         }
     }
 
+    // Vérifier si la variable existe déjà dans la portée actuelle
+    for (int i = nb_symboles-1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, nomEntite) == 0 &&
+            strcmp(table[i].portee, portee_actuelle) == 0) {
+            // Mise à jour au lieu d'insertion
+            if (table[i].val) free(table[i].val);
+            table[i].val = val ? strdup(val) : strdup("");
+            return;
+        }
+    }
+
     // Validation des types numériques
     if (strcmp(codeEntite, "entier") == 0 || strcmp(codeEntite, "decimal") == 0) {
         if (!val || val[0] == '\0') {
@@ -231,16 +242,14 @@ double get_valeur_variable(const char* identifiant) {
 }
 
 
-void mettre_a_jour_variable(const char* nom_variable, double nouvelle_valeur) {
-    char val_str[50];
-    snprintf(val_str, sizeof(val_str), "%d", (int)nouvelle_valeur); // Pour les entiers
-    
-    for (int i = nb_symboles - 1; i >= 0; i--) {
-        if (strcmp(table[i].nomEntite, nom_variable) == 0) {
+void mettre_a_jour_variable(const char* nom, double valeur) {
+    for (int i = nb_symboles-1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, nom) == 0) {
             if (table[i].val) free(table[i].val);
+            char val_str[20];
+            snprintf(val_str, sizeof(val_str), "%d", (int)valeur);
             table[i].val = strdup(val_str);
             return;
         }
     }
-    fprintf(stderr, "Erreur: Variable '%s' non trouvée\n", nom_variable);
 }

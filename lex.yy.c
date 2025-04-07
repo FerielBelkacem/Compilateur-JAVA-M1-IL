@@ -878,18 +878,14 @@ YY_RULE_SETUP
 #line 68 "lexical.l"
 {
     _col += yyleng;
-    yylval.str = strdup(yytext); // Allocation pour l'identifiant
-    if (dans_boucle) {
-        inserer("valide", yytext, "var_boucle", "identificateur", "");
-    } else {
-        inserer("valide", yytext, "idf", "identificateur", "");
-    }
+    yylval.str = strdup(yytext);
+    // NE PAS insérer ici, seulement retourner le token
     return idf;
 }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 80 "lexical.l"
+#line 76 "lexical.l"
 {
     _col += yyleng;
     yylval.entier = atoi(yytext);
@@ -899,7 +895,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 87 "lexical.l"
+#line 83 "lexical.l"
 {
     _col += yyleng;
     yylval.val_float = atof(yytext);
@@ -909,7 +905,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 94 "lexical.l"
+#line 90 "lexical.l"
 {
     _col += yyleng;
     yylval.str = strdup(yytext);
@@ -919,140 +915,140 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 102 "lexical.l"
+#line 98 "lexical.l"
 {_col += yyleng; return eq;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 103 "lexical.l"
+#line 99 "lexical.l"
 {_col += yyleng; return neq;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 104 "lexical.l"
+#line 100 "lexical.l"
 {_col += yyleng; return geq;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 105 "lexical.l"
+#line 101 "lexical.l"
 {_col += yyleng; return leq;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 106 "lexical.l"
+#line 102 "lexical.l"
 {_col += yyleng; return and;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 107 "lexical.l"
+#line 103 "lexical.l"
 {_col += yyleng; return or;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 108 "lexical.l"
+#line 104 "lexical.l"
 {_col += yyleng; return not;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 109 "lexical.l"
+#line 105 "lexical.l"
 {_col += yyleng; return acco;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 110 "lexical.l"
+#line 106 "lexical.l"
 {_col += yyleng; return accf;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 111 "lexical.l"
+#line 107 "lexical.l"
 {_col += yyleng; return '[';}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 112 "lexical.l"
+#line 108 "lexical.l"
 {_col += yyleng; return ']';}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 113 "lexical.l"
+#line 109 "lexical.l"
 {_col += yyleng; return '(';}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 114 "lexical.l"
+#line 110 "lexical.l"
 {_col += yyleng; return ')';}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 115 "lexical.l"
+#line 111 "lexical.l"
 {_col += yyleng; return '<';}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 116 "lexical.l"
+#line 112 "lexical.l"
 {_col += yyleng; return '>';}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 117 "lexical.l"
+#line 113 "lexical.l"
 {_col += yyleng; return '+';}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 118 "lexical.l"
+#line 114 "lexical.l"
 {_col += yyleng; return '-';}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 119 "lexical.l"
+#line 115 "lexical.l"
 {_col += yyleng; return '*';}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 120 "lexical.l"
+#line 116 "lexical.l"
 {_col += yyleng; return '/';}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 121 "lexical.l"
+#line 117 "lexical.l"
 {_col += yyleng; return '=';}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 122 "lexical.l"
+#line 118 "lexical.l"
 {_col += yyleng; return ',';}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 123 "lexical.l"
+#line 119 "lexical.l"
 {_col += yyleng; return ';';}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 124 "lexical.l"
+#line 120 "lexical.l"
 {_col += yyleng; return '.';}
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 126 "lexical.l"
+#line 122 "lexical.l"
 {_col += yyleng;}
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 127 "lexical.l"
+#line 123 "lexical.l"
 {_nb_ligne++; _col = 1;}
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 129 "lexical.l"
+#line 125 "lexical.l"
 {printf("Erreur lexicale: caractère invalide '%s' à la ligne %d, colonne %d\n", yytext, _nb_ligne, _col);}
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 131 "lexical.l"
+#line 127 "lexical.l"
 ECHO;
 	YY_BREAK
-#line 1056 "lex.yy.c"
+#line 1052 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1938,7 +1934,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 131 "lexical.l"
+#line 127 "lexical.l"
 
 
  

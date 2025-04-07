@@ -67,12 +67,8 @@ chaine \"[^\"]*\"
 
 {IDF} {
     _col += yyleng;
-    yylval.str = strdup(yytext); // Allocation pour l'identifiant
-    if (dans_boucle) {
-        inserer("valide", yytext, "var_boucle", "identificateur", "");
-    } else {
-        inserer("valide", yytext, "idf", "identificateur", "");
-    }
+    yylval.str = strdup(yytext);
+    // NE PAS insérer ici, seulement retourner le token
     return idf;
 }
 

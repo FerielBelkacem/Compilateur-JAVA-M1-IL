@@ -245,8 +245,6 @@ for_init:
         inserer("valide", $2, "var_boucle", $1, val_str);
         $$ = $4;
     }
-    | /* vide */ { $$ = 0; }
-    ;
 
 for_cond:
     expression { $$ = $1; }
