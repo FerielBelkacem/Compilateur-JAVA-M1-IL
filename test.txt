@@ -1,0 +1,9 @@
+public class TestFinal {
+    public static void main(String[] args) {
+        for(int i = 0; i < 2; i++) {       // Boucle 1
+            for(int j = 0; j < 2; j++) {   // Boucle 2 (i différent)
+                System.out.println(j);
+            }
+        }
+    }
+}

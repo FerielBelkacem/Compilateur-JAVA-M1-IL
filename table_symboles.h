@@ -1,0 +1,33 @@
+#ifndef TABLE_SYMBOLES_H
+#define TABLE_SYMBOLES_H
+
+#define MAX_SYMBOLES 1000
+#define MAX_PORTEE_LEN 100
+#define MAX_SCOPE_DEPTH 20
+
+typedef struct {
+    char* state;
+    char* nomEntite;
+    char* codeEntite;
+    char* type;
+    char* val;
+    char portee[MAX_PORTEE_LEN];
+} Symbole;
+
+extern int dans_boucle;
+extern char portee_actuelle[MAX_PORTEE_LEN];
+
+void init_scope_stack(void);
+void entrer_portee(const char* nom_portee);
+void sortir_portee(void);
+void inserer(const char* state, const char* nomEntite, const char* codeEntite,
+            const char* type, const char* val);
+Symbole* rechercher_global(const char* nomEntite);
+void afficher_table(void);
+void liberer_table(void);
+
+// Nouvelles fonctions ajoutées
+int variable_existe(const char* identifiant);
+double get_valeur_variable(const char* identifiant);
+
+#endif
