@@ -73,16 +73,18 @@
      and = 289,
      or = 290,
      not = 291,
-     mc_int = 292,
-     mc_float = 293,
-     mc_char = 294,
-     mc_boolean = 295,
-     mc_String = 296,
-     idf = 297,
-     chaine = 298,
-     entier = 299,
-     decimal_num = 300,
-     LOWER_THAN_ELSE = 301
+     inc = 292,
+     dec = 293,
+     mc_int = 294,
+     mc_float = 295,
+     mc_char = 296,
+     mc_boolean = 297,
+     mc_String = 298,
+     idf = 299,
+     chaine = 300,
+     entier = 301,
+     decimal_num = 302,
+     LOWER_THAN_ELSE = 303
    };
 #endif
 
@@ -102,7 +104,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 106 "syntaxique.tab.h"
+#line 108 "syntaxique.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

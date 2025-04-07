@@ -55,7 +55,20 @@ Symbole* rechercher_global(const char* nomEntite) {
 
 void inserer(const char* state, const char* nomEntite, const char* codeEntite,
             const char* type, const char* val) {
-
+    
+    // Correction de la vérification
+    if (strcmp(codeEntite, "entier") == 0 || strcmp(codeEntite, "decimal") == 0) {
+        if (!val || val[0] == '\0') {
+            fprintf(stderr, "Erreur ligne %d: Valeur manquante pour '%s'\n", _nb_ligne, nomEntite);
+            return;
+        }
+        char* end;
+        strtod(val, &end);
+        if (*end != '\0') {
+            fprintf(stderr, "Erreur ligne %d: Format invalide pour '%s'\n", _nb_ligne, nomEntite);
+            return;
+        }
+    }
      
 
 
@@ -197,15 +210,15 @@ double get_valeur_variable(const char* identifiant) {
             if (strcmp(table[i].portee, portee_actuelle) == 0 ||
                 strcmp(table[i].portee, "global") == 0) {
                 
+                // Si c'est une variable de boucle, on considère qu'elle est numérique
+                if (strcmp(table[i].codeEntite, "var_boucle") == 0) {
+                    return table[i].val ? atof(table[i].val) : 0.0;
+                }
+                
                 // Gestion selon le type
-                if (strcmp(table[i].type, "int") == 0) {
-                    return table[i].val ? atof(table[i].val) : 0.0;
-                }
-                else if (strcmp(table[i].type, "float") == 0 || 
-                         strcmp(table[i].type, "double") == 0) {
-                    return table[i].val ? atof(table[i].val) : 0.0;
-                }
-                else if (strcmp(table[i].type, "String") == 0) {
+                if (strcmp(table[i].type, "int") == 0 ||
+                    strcmp(table[i].type, "float") == 0 || 
+                    strcmp(table[i].type, "double") == 0) {
                     return table[i].val ? atof(table[i].val) : 0.0;
                 }
                 else {
@@ -215,4 +228,19 @@ double get_valeur_variable(const char* identifiant) {
         }
     }
     return 0.0; // Variable non trouvée
+}
+
+
+void mettre_a_jour_variable(const char* nom_variable, double nouvelle_valeur) {
+    char val_str[50];
+    snprintf(val_str, sizeof(val_str), "%d", (int)nouvelle_valeur); // Pour les entiers
+    
+    for (int i = nb_symboles - 1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, nom_variable) == 0) {
+            if (table[i].val) free(table[i].val);
+            table[i].val = strdup(val_str);
+            return;
+        }
+    }
+    fprintf(stderr, "Erreur: Variable '%s' non trouvée\n", nom_variable);
 }

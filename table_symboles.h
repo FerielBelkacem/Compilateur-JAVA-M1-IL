@@ -4,6 +4,7 @@
 #define MAX_SYMBOLES 1000
 #define MAX_PORTEE_LEN 100
 #define MAX_SCOPE_DEPTH 20
+#define MAX_VAL_LEN 100
 
 typedef struct {
     char* state;
@@ -29,5 +30,7 @@ void liberer_table(void);
 // Nouvelles fonctions ajoutées
 int variable_existe(const char* identifiant);
 double get_valeur_variable(const char* identifiant);
+void mettre_a_jour_variable(const char* nom_variable, double nouvelle_valeur);
+
 
 #endif

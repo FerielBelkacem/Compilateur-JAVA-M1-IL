@@ -34,7 +34,7 @@ extern int dans_boucle;
 %token mc_public mc_private mc_protected mc_static mc_final mc_abstract
 %token mc_package mc_import mc_System mc_out mc_println  
 %token mc_double  mc_main
-%token acco accf geq leq eq neq and or not
+%token acco accf geq leq eq neq and or not inc dec
 %token mc_int mc_float mc_char mc_boolean mc_String  
 
 %token <str> idf chaine
@@ -229,7 +229,7 @@ for_statement:
         dans_boucle = 1;
     }
     for_init ';' for_cond ';' for_inc ')' 
-    {
+    { 
         dans_boucle = 0;
     }
     statement 
@@ -239,10 +239,11 @@ for_statement:
     ;
 
 for_init:
-    type idf '=' expression  
-    { 
-        inserer("valide", $2, "var_boucle", $1, ""); 
-        $$ = 1;  // Valeur de retour cohérente
+    type idf '=' expression {
+        char val_str[20];
+        snprintf(val_str, sizeof(val_str), "%d", $4);
+        inserer("valide", $2, "var_boucle", $1, val_str);
+        $$ = $4;
     }
     | /* vide */ { $$ = 0; }
     ;
@@ -253,8 +254,27 @@ for_cond:
     ;
 
 for_inc:
-    expression { $$ = $1; }
-    | /* vide */ { $$ = 0; }  // 0 = pas d'incrément
+    idf inc {
+        if (!variable_existe($1)) {
+            yyerror("Variable non déclarée");
+            YYERROR;
+        }
+        double val = get_valeur_variable($1);
+        val += 1;
+        mettre_a_jour_variable($1, val);
+        $$ = val;
+    }
+    | idf dec {
+        if (!variable_existe($1)) {
+            yyerror("Variable non déclarée");
+            YYERROR;
+        }
+        double val = get_valeur_variable($1);
+        val -= 1;
+        mettre_a_jour_variable($1, val);
+        $$ = val;
+    }
+    | /* vide */ { $$ = 0; }
     ;
 
 while_statement:

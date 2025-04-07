@@ -16,7 +16,8 @@ int yywrap(void);
 int yylex(void);
 
 /* Function declarations */
-void inserer(const char* state, const char* nomEntite, const char* codeEntite, const char* type, const char* val);
+void inserer(const char* state, const char* nomEntite, const char* codeEntite,
+            const char* type, const char* val);
 
 %}
 
@@ -59,6 +60,8 @@ chaine \"[^\"]*\"
 "out" {_col += yyleng; return mc_out; }
 "println" {_col += yyleng; return mc_println; } 
 "main" {_col += yyleng; return mc_main;}
+"++" { _col += yyleng; return inc; }
+"--" { _col += yyleng; return dec; }
 
 
 
@@ -72,12 +75,15 @@ chaine \"[^\"]*\"
     }
     return idf;
 }
+
+
 {Entier} {
     _col += yyleng;
     yylval.entier = atoi(yytext);
-    inserer("valide", yytext, "entier", "nombre", yytext);
+    inserer("valide", yytext, "entier", "nombre", yytext); // yytext est déjà une chaîne
     return entier;
 }
+
 {Decimal} {
     _col += yyleng;
     yylval.val_float = atof(yytext);
