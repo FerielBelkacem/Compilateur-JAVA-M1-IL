@@ -65,13 +65,15 @@ chaine \"[^\"]*\"
 "main" {_col += yyleng; return mc_main;}
 "++" { _col += yyleng; return inc; }
 "--" { _col += yyleng; return dec; }
+"this" {_col += yyleng; return mc_this; }
+"new" {_col += yyleng; return mc_new; }
 
 
 
 {IDF} {
     _col += yyleng;
     yylval.str = strdup(yytext);
-    // NE PAS insérer ici, seulement retourner le token
+     inserer("valide", yytext, "identifiant", "nombre", yytext); 
     return idf;
 }
 

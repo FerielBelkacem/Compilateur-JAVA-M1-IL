@@ -1,13 +1,42 @@
-public class TestAvance {
+public class Personne {
+    // Attributs
+    private String nom;
+    private int age;
+    
+    // Constructeur
+    public Personne(String nom, int age) {
+        this.nom = nom;
+        this.age = age;
+    }
+    
+    // Méthodes
+    public void afficherInfos() {
+        System.out.println("Nom: " + nom);
+        System.out.println("Age: " + age + " ans");
+    }
+    
+    public void anniversaire() {
+        age++;
+        System.out.println(nom + " a maintenant " + age + " ans!");
+    }
+    
+    public String getNom() {
+        return nom;
+    }
+    
+    public void setNom(String nouveauNom) {
+        nom = nouveauNom;
+    }
+    
+    // Méthode main pour tester
     public static void main(String[] args) {
-        int a = 5, b = 2;
-        double c = 3.5;
-        String msg = "Résultat: ";
+        // Création d'un objet avec le constructeur
+        Personne p1 = new Personne("Alice", 25);
         
-        System.out.println(msg + (a * b + c));
-        
-        for (int i = 0; i < 3; i++) {
-            System.out.println("i = " + i);
-        }
+        // Appel des méthodes
+        p1.afficherInfos();
+        p1.anniversaire();
+        p1.setNom("Alice Dupont");
+        System.out.println("Nouveau nom: " + p1.getNom());
     }
 }

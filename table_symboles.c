@@ -11,6 +11,8 @@ static char scope_stack[MAX_SCOPE_DEPTH][MAX_PORTEE_LEN];
 static int scope_depth = 0;
 int dans_boucle = 0;
 
+ 
+
 extern int _nb_ligne;
 
 void init_scope_stack(void) {
@@ -82,7 +84,46 @@ void inserer(const char* state, const char* nomEntite, const char* codeEntite,
             }
         }
     }
+
+      // Ne pas vérifier les redéclarations pour les champs de classe
+    if(strcmp(codeEntite, "field") == 0) {
+        // Vérifie seulement dans la portée globale
+        for(int i = 0; i < nb_symboles; i++) {
+            if(strcmp(table[i].nomEntite, nomEntite) == 0 && 
+               strcmp(table[i].portee, "global") == 0 &&
+               strcmp(table[i].codeEntite, "field") == 0) {
+                fprintf(stderr, "Erreur: Champ '%s' déjà déclaré\n", nomEntite);
+                return;
+            }
+        }
+    }
+    else {
+        // Pour les autres éléments, vérifie dans la portée actuelle
+        for(int i = nb_symboles-1; i >= 0; i--) {
+            if(strcmp(table[i].nomEntite, nomEntite) == 0 && 
+               strcmp(table[i].portee, portee_actuelle) == 0) {
+                fprintf(stderr, "Erreur: '%s' déjà déclaré dans '%s'\n", nomEntite, portee_actuelle);
+                return;
+            }
+        }
+    }
     
+if(strcmp(codeEntite, "field") == 0 || strcmp(codeEntite, "param") == 0) {
+    // Validation des types
+    const char* valid_types[] = {"int", "float", "double", "char", "boolean", "String"};
+    int valid = 0;
+    for(int i = 0; i < sizeof(valid_types)/sizeof(valid_types[0]); i++) {
+        if(strcmp(type, valid_types[i]) == 0) {
+            valid = 1;
+            break;
+        }
+    }
+    if(!valid && strncmp(type, "mc_", 3) != 0) {  // Autorise aussi les types utilisateur
+        fprintf(stderr, "Erreur: Type invalide '%s' pour '%s'\n", type, nomEntite);
+        return;
+    }
+}
+
     // Vérification des pointeurs NULL
     if (!nomEntite || !codeEntite || !type) {
         fprintf(stderr, "Erreur: Paramètres invalides pour inserer()\n");
@@ -103,6 +144,23 @@ void inserer(const char* state, const char* nomEntite, const char* codeEntite,
             }
         }
     }
+
+
+    if(strcmp(codeEntite, "field") == 0 || strcmp(codeEntite, "param") == 0) {
+    // Validation des types
+    const char* valid_types[] = {"int", "float", "double", "char", "boolean", "String"};
+    int valid = 0;
+    for(int i = 0; i < sizeof(valid_types)/sizeof(valid_types[0]); i++) {
+        if(strcmp(type, valid_types[i]) == 0) {
+            valid = 1;
+            break;
+        }
+    }
+    if(!valid && strncmp(type, "mc_", 3) != 0) {  // Autorise aussi les types utilisateur
+        fprintf(stderr, "Erreur: Type invalide '%s' pour '%s'\n", type, nomEntite);
+        return;
+    }
+}
 
     // Vérifier si la variable existe déjà dans la portée actuelle
     for (int i = nb_symboles-1; i >= 0; i--) {
@@ -173,7 +231,7 @@ void afficher_table(void) {
     printf("\n=== TABLE DES SYMBOLES ===\n");
     printf("%-10s | %-20s | %-15s | %-15s | %-10s | %-10s\n", 
            "State", "Nom", "Code", "Type", "Valeur", "Portée");
-    printf("------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------------------------------\n");
     
     for (int i = 0; i < nb_symboles; i++) {
         printf("%-10s | %-20s | %-15s | %-15s | %-10s | %-10s\n",
@@ -198,16 +256,32 @@ void liberer_table(void) {
 }
 
 int variable_existe(const char* identifiant) {
-    // Parcourt la table à l'envers pour trouver la déclaration la plus récente
+    // 1. Vérifie les variables locales/paramètres exacts
     for (int i = nb_symboles - 1; i >= 0; i--) {
-        if (strcmp(table[i].nomEntite, identifiant) == 0) {
-            // Vérifie si c'est dans la portée actuelle ou une portée parente
-            if (strstr(portee_actuelle, table[i].portee) || 
-                strcmp(table[i].portee, "global") == 0) {
-                return 1;
-            }
+        if (strcmp(table[i].nomEntite, identifiant) == 0 &&
+            strcmp(table[i].portee, portee_actuelle) == 0) {
+            return 1;
         }
     }
+
+    // 2. Vérifie les champs de classe (sans this.)
+    for (int i = nb_symboles - 1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, identifiant) == 0 &&
+            strcmp(table[i].codeEntite, "field") == 0 &&
+            strcmp(table[i].portee, "global") == 0) {
+            return 1;
+        }
+    }
+
+    // 3. Vérifie avec préfixe mc_this.
+    char full_name[100];
+    snprintf(full_name, sizeof(full_name), "mc_this.%s", identifiant);
+    for (int i = nb_symboles - 1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, full_name) == 0) {
+            return 1;
+        }
+    }
+
     return 0;
 }
 
@@ -229,18 +303,51 @@ double get_valeur_variable(const char* identifiant) {
     return 0.0;
 }
 
+void inserer_parametres(Parameter* params) {
+    while(params != NULL) {
+        inserer("valide", params->name, "param", params->type, "");
+        params = params->next;
+    }
+}
+
 void mettre_a_jour_variable(const char* nom, double valeur) {
-    for (int i = nb_symboles-1; i >= 0; i--) {
-        if (strcmp(table[i].nomEntite, nom) == 0) {
+    char val_str[20];
+    snprintf(val_str, sizeof(val_str), "%d", (int)valeur);
+
+    // 1. Essaie de trouver comme variable locale
+    for (int i = nb_symboles - 1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, nom) == 0 &&
+            strcmp(table[i].portee, portee_actuelle) == 0) {
             if (table[i].val) free(table[i].val);
-            char val_str[20];
-            snprintf(val_str, sizeof(val_str), "%d", (int)valeur);
             table[i].val = strdup(val_str);
             return;
         }
     }
-}
 
+    // 2. Si non trouvé, cherche comme champ de classe
+    for (int i = nb_symboles - 1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, nom) == 0 &&
+            strcmp(table[i].codeEntite, "field") == 0 &&
+            strcmp(table[i].portee, "global") == 0) {
+            if (table[i].val) free(table[i].val);
+            table[i].val = strdup(val_str);
+            return;
+        }
+    }
+
+    // 3. Si toujours pas trouvé, essaie avec mc_this.
+    char full_name[100];
+    snprintf(full_name, sizeof(full_name), "mc_this.%s", nom);
+    for (int i = nb_symboles - 1; i >= 0; i--) {
+        if (strcmp(table[i].nomEntite, full_name) == 0) {
+            if (table[i].val) free(table[i].val);
+            table[i].val = strdup(val_str);
+            return;
+        }
+    }
+
+    fprintf(stderr, "Erreur: Impossible de trouver '%s' pour mise à jour\n", nom);
+}
 void inserer_multiple(const char* type, char** noms, int count, char** valeurs) {
     for (int i = 0; i < count; i++) {
         inserer("valide", noms[i], "variable", type, valeurs ? valeurs[i] : "");

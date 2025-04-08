@@ -15,6 +15,15 @@ typedef struct {
     char portee[MAX_PORTEE_LEN];
 } Symbole;
 
+typedef struct Parameter Parameter;
+
+struct Parameter {
+    char* type;
+    char* name;
+    Parameter* next;
+};
+
+
 
 extern Symbole table[MAX_SYMBOLES];
 extern int nb_symboles; 
@@ -35,5 +44,5 @@ int variable_existe(const char* identifiant);
 double get_valeur_variable(const char* identifiant);
 void mettre_a_jour_variable(const char* nom_variable, double nouvelle_valeur);
 void inserer_multiple(const char* type, char** noms, int count, char** valeurs);
-
+void inserer_parametres(Parameter* params);
 #endif

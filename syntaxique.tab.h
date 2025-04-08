@@ -32,6 +32,17 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* "%code requires" blocks.  */
+
+/* Line 1676 of yacc.c  */
+#line 24 "syntaxique.y"
+
+    typedef struct Parameter Parameter;
+
+
+
+/* Line 1676 of yacc.c  */
+#line 46 "syntaxique.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -43,48 +54,50 @@
      mc_extends = 259,
      mc_implements = 260,
      mc_void = 261,
-     mc_return = 262,
-     mc_if = 263,
-     mc_else = 264,
-     mc_for = 265,
-     mc_while = 266,
-     mc_try = 267,
-     mc_catch = 268,
-     mc_finally = 269,
-     mc_public = 270,
-     mc_private = 271,
-     mc_protected = 272,
-     mc_static = 273,
-     mc_final = 274,
-     mc_abstract = 275,
-     mc_package = 276,
-     mc_import = 277,
-     mc_System = 278,
-     mc_out = 279,
-     mc_println = 280,
-     mc_double = 281,
-     mc_main = 282,
-     acco = 283,
-     accf = 284,
-     geq = 285,
-     leq = 286,
-     eq = 287,
-     neq = 288,
-     and = 289,
-     or = 290,
-     not = 291,
-     inc = 292,
-     dec = 293,
-     mc_int = 294,
-     mc_float = 295,
-     mc_char = 296,
-     mc_boolean = 297,
-     mc_String = 298,
-     idf = 299,
-     chaine = 300,
-     entier = 301,
-     decimal_num = 302,
-     LOWER_THAN_ELSE = 303
+     mc_this = 262,
+     mc_new = 263,
+     mc_return = 264,
+     mc_if = 265,
+     mc_else = 266,
+     mc_for = 267,
+     mc_while = 268,
+     mc_try = 269,
+     mc_catch = 270,
+     mc_finally = 271,
+     mc_public = 272,
+     mc_private = 273,
+     mc_protected = 274,
+     mc_static = 275,
+     mc_final = 276,
+     mc_abstract = 277,
+     mc_package = 278,
+     mc_import = 279,
+     mc_System = 280,
+     mc_out = 281,
+     mc_println = 282,
+     mc_double = 283,
+     mc_main = 284,
+     acco = 285,
+     accf = 286,
+     geq = 287,
+     leq = 288,
+     eq = 289,
+     neq = 290,
+     and = 291,
+     or = 292,
+     not = 293,
+     inc = 294,
+     dec = 295,
+     mc_int = 296,
+     mc_float = 297,
+     mc_char = 298,
+     mc_boolean = 299,
+     mc_String = 300,
+     idf = 301,
+     chaine = 302,
+     entier = 303,
+     decimal_num = 304,
+     LOWER_THAN_ELSE = 305
    };
 #endif
 
@@ -95,16 +108,17 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 24 "syntaxique.y"
+#line 30 "syntaxique.y"
 
     char* str;        // Pour les identifiants et chaînes
     int entier;      // Pour les valeurs entières
     double val_float; // Pour les nombres décimaux
+    Parameter* param_list;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 108 "syntaxique.tab.h"
+#line 122 "syntaxique.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

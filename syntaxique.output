@@ -4,9 +4,10 @@ Terminals unused in grammar
    mc_catch
    mc_finally
    mc_abstract
-   mc_new
    mc_package
    mc_import
+   mc_main
+   or
 
 
 Grammaire
@@ -48,150 +49,162 @@ Grammaire
    22 class_member_declarations: class_member_declaration
    23                          | class_member_declarations class_member_declaration
 
-   24 constructor_declaration: opt_modifiers idf '(' parameters ')' block
+   24 class_member_declaration: field_declaration
+   25                         | method_declaration
+   26                         | constructor_declaration
 
-   25 class_member_declaration: field_declaration
-   26                         | method_declaration
-   27                         | constructor_declaration
+   27 $@1: /* vide */
 
-   28 field_declaration: opt_modifiers type idf ';'
-   29                  | opt_modifiers type idf '=' expression ';'
+   28 constructor_declaration: opt_modifiers idf '(' parameters ')' $@1 block
 
-   30 $@1: /* vide */
+   29 field_declaration: opt_modifiers type idf ';'
+   30                  | opt_modifiers type idf '=' expression ';'
 
-   31 method_declaration: opt_modifiers type idf '(' parameters ')' $@1 block
+   31 $@2: /* vide */
 
-   32 $@2: /* vide */
+   32 method_declaration: opt_modifiers type idf '(' parameters ')' $@2 block
 
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' ']' idf ')' $@2 block
+   33 parameters: /* vide */
+   34           | parameter_list
 
-   34 parameters: /* vide */
-   35           | parameter_list
+   35 parameter_list: parameter
+   36               | parameter_list ',' parameter
 
-   36 parameter_list: parameter
-   37               | parameter_list ',' parameter
+   37 parameter: type idf
 
-   38 parameter: type idf
+   38 type: mc_int
+   39     | mc_float
+   40     | mc_double
+   41     | mc_char
+   42     | mc_boolean
+   43     | mc_String
+   44     | mc_void
+   45     | idf
 
-   39 type: mc_int
-   40     | mc_float
-   41     | mc_double
-   42     | mc_char
-   43     | mc_boolean
-   44     | mc_String
-   45     | mc_void
-   46     | idf
+   46 $@3: /* vide */
 
-   47 $@3: /* vide */
+   47 block: acco $@3 statements accf
 
-   48 block: acco $@3 statements accf
+   48 statements: /* vide */
+   49           | statements statement
 
-   49 statements: /* vide */
-   50           | statements statement
+   50 statement: declaration_statement
+   51          | expression_statement
+   52          | if_statement
+   53          | for_statement
+   54          | while_statement
+   55          | return_statement
+   56          | block
+   57          | io_statement
 
-   51 statement: declaration_statement
-   52          | expression_statement
-   53          | if_statement
-   54          | for_statement
-   55          | while_statement
-   56          | return_statement
-   57          | block
-   58          | io_statement
+   58 declaration_statement: type declarator_list ';'
 
-   59 declaration_statement: type idf ';'
-   60                      | type idf '=' expression ';'
+   59 declarator_list: declarator
+   60                | declarator_list ',' declarator
 
-   61 expression_statement: expression ';'
+   61 declarator: idf
+   62           | idf '=' expression
 
-   62 if_statement: mc_if '(' expression ')' statement
-   63             | mc_if '(' expression ')' statement mc_else statement
+   63 expression_statement: expression ';'
 
-   64 $@4: /* vide */
+   64 if_statement: mc_if '(' expression ')' statement
+   65             | mc_if '(' expression ')' statement mc_else statement
 
-   65 $@5: /* vide */
+   66 $@4: /* vide */
 
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement
+   67 $@5: /* vide */
 
-   67 for_init: declaration_statement
-   68         | expression
-   69         | /* vide */
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement
+
+   69 for_init: type idf '=' expression
 
    70 for_cond: expression
    71         | /* vide */
 
-   72 for_inc: expression
-   73        | /* vide */
+   72 for_inc: idf inc
+   73        | idf dec
+   74        | /* vide */
 
-   74 while_statement: mc_while '(' expression ')' statement
+   75 while_statement: mc_while '(' expression ')' statement
 
-   75 return_statement: mc_return ';'
-   76                 | mc_return expression ';'
+   76 return_statement: mc_return ';'
+   77                 | mc_return expression ';'
 
-   77 io_statement: mc_System '.' mc_out '.' mc_println '(' expression ')' ';'
+   78 io_statement: mc_System '.' mc_out '.' mc_println '(' expression ')' ';'
 
-   78 expression: assignment_expression
+   79 expression: assignment_expression
 
-   79 assignment_expression: logical_expression
-   80                      | idf '=' assignment_expression
+   80 assignment_expression: logical_expression
+   81                      | assignable '=' assignment_expression
 
-   81 logical_expression: comparison_expression
-   82                   | logical_expression and comparison_expression
-   83                   | logical_expression or comparison_expression
-   84                   | not comparison_expression
+   82 assignable: idf
+   83           | mc_this '.' idf
 
-   85 comparison_expression: additive_expression
-   86                      | additive_expression eq additive_expression
-   87                      | additive_expression neq additive_expression
-   88                      | additive_expression '<' additive_expression
-   89                      | additive_expression '>' additive_expression
-   90                      | additive_expression leq additive_expression
-   91                      | additive_expression geq additive_expression
+   84 logical_expression: comparison_expression
+   85                   | logical_expression and comparison_expression
+   86                   | not comparison_expression
 
-   92 additive_expression: multiplicative_expression
-   93                    | additive_expression '+' multiplicative_expression
-   94                    | additive_expression '-' multiplicative_expression
+   87 comparison_expression: additive_expression
+   88                      | additive_expression eq additive_expression
+   89                      | additive_expression neq additive_expression
+   90                      | additive_expression '>' additive_expression
+   91                      | additive_expression '<' additive_expression
+   92                      | additive_expression leq additive_expression
+   93                      | additive_expression geq additive_expression
 
-   95 multiplicative_expression: primary_expression
-   96                          | multiplicative_expression '*' primary_expression
-   97                          | multiplicative_expression '/' primary_expression
-
-   98 primary_expression: idf
+   94 primary_expression: idf '.' idf
+   95                   | mc_this '.' idf
+   96                   | idf
+   97                   | idf inc
+   98                   | idf dec
    99                   | entier
-  100                   | chaine
-  101                   | decimal
+  100                   | decimal_num
+  101                   | chaine
   102                   | '(' expression ')'
-  103                   | primary_expression '.' idf
+  103                   | mc_new idf '(' arguments ')'
+
+  104 arguments: /* vide */
+  105          | expression_list
+
+  106 expression_list: expression
+  107                | expression_list ',' expression
+
+  108 additive_expression: multiplicative_expression
+  109                    | additive_expression '+' multiplicative_expression
+  110                    | additive_expression '-' multiplicative_expression
+
+  111 multiplicative_expression: primary_expression
+  112                          | multiplicative_expression '*' primary_expression
+  113                          | multiplicative_expression '/' primary_expression
 
 
 Terminaux, suivis des règles où ils apparaissent
 
 $end (0) 0
-'(' (40) 24 31 33 62 63 66 74 77 102
-')' (41) 24 31 33 62 63 66 74 77 102
-'*' (42) 96
-'+' (43) 93
-',' (44) 19 37
-'-' (45) 94
-'.' (46) 77 103
-'/' (47) 97
-';' (59) 28 29 59 60 61 66 75 76 77
-'<' (60) 88
-'=' (61) 29 60 80
-'>' (62) 89
-'[' (91) 33
-']' (93) 33
+'(' (40) 28 32 64 65 68 75 78 102 103
+')' (41) 28 32 64 65 68 75 78 102 103
+'*' (42) 112
+'+' (43) 109
+',' (44) 19 36 60 107
+'-' (45) 110
+'.' (46) 78 83 94 95
+'/' (47) 113
+';' (59) 29 30 58 63 68 76 77 78
+'<' (60) 91
+'=' (61) 30 62 69 81
+'>' (62) 90
 error (256)
 mc_class (258) 2
 mc_extends (259) 16
 mc_implements (260) 17
-mc_void (261) 33 45
-mc_int (262) 39
-mc_String (263) 33 44
-mc_return (264) 75 76
-mc_if (265) 62 63
-mc_else (266) 63
-mc_for (267) 66
-mc_while (268) 74
+mc_void (261) 44
+mc_this (262) 83 95
+mc_new (263) 103
+mc_return (264) 76 77
+mc_if (265) 64 65
+mc_else (266) 65
+mc_for (267) 68
+mc_while (268) 75
 mc_try (269)
 mc_catch (270)
 mc_finally (271)
@@ -201,127 +214,142 @@ mc_protected (274) 9
 mc_static (275) 10
 mc_final (276) 11
 mc_abstract (277)
-mc_new (278)
-mc_package (279)
-mc_import (280)
-mc_System (281) 77
-mc_out (282) 77
-mc_println (283) 77
-mc_boolean (284) 43
-mc_char (285) 42
-mc_double (286) 41
-mc_float (287) 40
-mc_main (288) 33
-acco (289) 2 48
-accf (290) 2 48
-geq (291) 91
-leq (292) 90
-eq (293) 86
-neq (294) 87
-and (295) 82
-or (296) 83
-not (297) 84
-idf (298) 2 16 18 19 24 28 29 31 33 38 46 59 60 80 98 103
-chaine (299) 100
-entier (300) 99
-decimal (301) 101
-LOWER_THAN_ELSE (302)
+mc_package (278)
+mc_import (279)
+mc_System (280) 78
+mc_out (281) 78
+mc_println (282) 78
+mc_double (283) 40
+mc_main (284)
+acco (285) 2 47
+accf (286) 2 47
+geq (287) 93
+leq (288) 92
+eq (289) 88
+neq (290) 89
+and (291) 85
+or (292)
+not (293) 86
+inc (294) 72 97
+dec (295) 73 98
+mc_int (296) 38
+mc_float (297) 39
+mc_char (298) 41
+mc_boolean (299) 42
+mc_String (300) 43
+idf (301) 2 16 18 19 28 29 30 32 37 45 61 62 69 72 73 82 83 94 95 96
+    97 98 103
+chaine (302) 101
+entier (303) 99
+decimal_num (304) 100
+LOWER_THAN_ELSE (305)
 
 
 Non-terminaux, suivis des règles où ils apparaissent
 
-$accept (62)
+$accept (63)
     à gauche: 0
-program (63)
+program (64)
     à gauche: 1, à droite: 0
-class_declaration (64)
+class_declaration (65)
     à gauche: 2, à droite: 1
-opt_modifiers (65)
-    à gauche: 3 4, à droite: 2 24 28 29 31 33
-modifiers (66)
+opt_modifiers (66)
+    à gauche: 3 4, à droite: 2 28 29 30 32
+modifiers (67)
     à gauche: 5 6, à droite: 4 6
-modifier (67)
+modifier (68)
     à gauche: 7 8 9 10 11, à droite: 5 6
-opt_class_inheritance (68)
+opt_class_inheritance (69)
     à gauche: 12 13, à droite: 2
-inheritance_clause (69)
+inheritance_clause (70)
     à gauche: 14 15, à droite: 13
-extends_clause (70)
+extends_clause (71)
     à gauche: 16, à droite: 14
-implements_clause (71)
+implements_clause (72)
     à gauche: 17, à droite: 15
-idf_list (72)
+idf_list (73)
     à gauche: 18 19, à droite: 17 19
-class_body (73)
+class_body (74)
     à gauche: 20 21, à droite: 2
-class_member_declarations (74)
+class_member_declarations (75)
     à gauche: 22 23, à droite: 21 23
-constructor_declaration (75)
-    à gauche: 24, à droite: 27
 class_member_declaration (76)
-    à gauche: 25 26 27, à droite: 22 23
-field_declaration (77)
-    à gauche: 28 29, à droite: 25
-method_declaration (78)
-    à gauche: 31 33, à droite: 26
-$@1 (79)
-    à gauche: 30, à droite: 31
-$@2 (80)
-    à gauche: 32, à droite: 33
-parameters (81)
-    à gauche: 34 35, à droite: 24 31
-parameter_list (82)
-    à gauche: 36 37, à droite: 35 37
-parameter (83)
-    à gauche: 38, à droite: 36 37
-type (84)
-    à gauche: 39 40 41 42 43 44 45 46, à droite: 28 29 31 38 59 60
-block (85)
-    à gauche: 48, à droite: 24 31 33 57
-$@3 (86)
-    à gauche: 47, à droite: 48
-statements (87)
-    à gauche: 49 50, à droite: 48 50
-statement (88)
-    à gauche: 51 52 53 54 55 56 57 58, à droite: 50 62 63 66 74
-declaration_statement (89)
-    à gauche: 59 60, à droite: 51 67
-expression_statement (90)
-    à gauche: 61, à droite: 52
-if_statement (91)
-    à gauche: 62 63, à droite: 53
-for_statement (92)
-    à gauche: 66, à droite: 54
-$@4 (93)
-    à gauche: 64, à droite: 66
-$@5 (94)
-    à gauche: 65, à droite: 66
-for_init (95)
-    à gauche: 67 68 69, à droite: 66
-for_cond (96)
-    à gauche: 70 71, à droite: 66
-for_inc (97)
-    à gauche: 72 73, à droite: 66
-while_statement (98)
-    à gauche: 74, à droite: 55
-return_statement (99)
-    à gauche: 75 76, à droite: 56
-io_statement (100)
-    à gauche: 77, à droite: 58
-expression (101)
-    à gauche: 78, à droite: 29 60 61 62 63 68 70 72 74 76 77 102
-assignment_expression (102)
-    à gauche: 79 80, à droite: 78 80
-logical_expression (103)
-    à gauche: 81 82 83 84, à droite: 79 82 83
-comparison_expression (104)
-    à gauche: 85 86 87 88 89 90 91, à droite: 81 82 83 84
-additive_expression (105)
-    à gauche: 92 93 94, à droite: 85 86 87 88 89 90 91 93 94
-multiplicative_expression (106)
-    à gauche: 95 96 97, à droite: 92 93 94 96 97
-primary_expression (107)
-    à gauche: 98 99 100 101 102 103, à droite: 95 96 97 103
+    à gauche: 24 25 26, à droite: 22 23
+constructor_declaration (77)
+    à gauche: 28, à droite: 26
+$@1 (78)
+    à gauche: 27, à droite: 28
+field_declaration (79)
+    à gauche: 29 30, à droite: 24
+method_declaration (80)
+    à gauche: 32, à droite: 25
+$@2 (81)
+    à gauche: 31, à droite: 32
+parameters (82)
+    à gauche: 33 34, à droite: 28 32
+parameter_list (83)
+    à gauche: 35 36, à droite: 34 36
+parameter (84)
+    à gauche: 37, à droite: 35 36
+type (85)
+    à gauche: 38 39 40 41 42 43 44 45, à droite: 29 30 32 37 58 69
+block (86)
+    à gauche: 47, à droite: 28 32 56
+$@3 (87)
+    à gauche: 46, à droite: 47
+statements (88)
+    à gauche: 48 49, à droite: 47 49
+statement (89)
+    à gauche: 50 51 52 53 54 55 56 57, à droite: 49 64 65 68 75
+declaration_statement (90)
+    à gauche: 58, à droite: 50
+declarator_list (91)
+    à gauche: 59 60, à droite: 58 60
+declarator (92)
+    à gauche: 61 62, à droite: 59 60
+expression_statement (93)
+    à gauche: 63, à droite: 51
+if_statement (94)
+    à gauche: 64 65, à droite: 52
+for_statement (95)
+    à gauche: 68, à droite: 53
+$@4 (96)
+    à gauche: 66, à droite: 68
+$@5 (97)
+    à gauche: 67, à droite: 68
+for_init (98)
+    à gauche: 69, à droite: 68
+for_cond (99)
+    à gauche: 70 71, à droite: 68
+for_inc (100)
+    à gauche: 72 73 74, à droite: 68
+while_statement (101)
+    à gauche: 75, à droite: 54
+return_statement (102)
+    à gauche: 76 77, à droite: 55
+io_statement (103)
+    à gauche: 78, à droite: 57
+expression (104)
+    à gauche: 79, à droite: 30 62 63 64 65 69 70 75 77 78 102 106 107
+assignment_expression (105)
+    à gauche: 80 81, à droite: 79 81
+assignable (106)
+    à gauche: 82 83, à droite: 81
+logical_expression (107)
+    à gauche: 84 85 86, à droite: 80 85
+comparison_expression (108)
+    à gauche: 87 88 89 90 91 92 93, à droite: 84 85 86
+primary_expression (109)
+    à gauche: 94 95 96 97 98 99 100 101 102 103, à droite: 111 112
+    113
+arguments (110)
+    à gauche: 104 105, à droite: 103
+expression_list (111)
+    à gauche: 106 107, à droite: 105 107
+additive_expression (112)
+    à gauche: 108 109 110, à droite: 87 88 89 90 91 92 93 109 110
+multiplicative_expression (113)
+    à gauche: 111 112 113, à droite: 108 109 110 112 113
 
 
 état 0
@@ -544,8 +572,8 @@ primary_expression (107)
     modifier                   aller à l'état 10
     class_body                 aller à l'état 27
     class_member_declarations  aller à l'état 28
-    constructor_declaration    aller à l'état 29
-    class_member_declaration   aller à l'état 30
+    class_member_declaration   aller à l'état 29
+    constructor_declaration    aller à l'état 30
     field_declaration          aller à l'état 31
     method_declaration         aller à l'état 32
 
@@ -559,19 +587,18 @@ primary_expression (107)
 
 état 26
 
-   24 constructor_declaration: opt_modifiers . idf '(' parameters ')' block
-   28 field_declaration: opt_modifiers . type idf ';'
-   29                  | opt_modifiers . type idf '=' expression ';'
-   31 method_declaration: opt_modifiers . type idf '(' parameters ')' $@1 block
-   33                   | opt_modifiers . mc_void mc_main '(' mc_String '[' ']' idf ')' $@2 block
+   28 constructor_declaration: opt_modifiers . idf '(' parameters ')' $@1 block
+   29 field_declaration: opt_modifiers . type idf ';'
+   30                  | opt_modifiers . type idf '=' expression ';'
+   32 method_declaration: opt_modifiers . type idf '(' parameters ')' $@2 block
 
     mc_void     décalage et aller à l'état 34
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_boolean  décalage et aller à l'état 37
+    mc_double   décalage et aller à l'état 35
+    mc_int      décalage et aller à l'état 36
+    mc_float    décalage et aller à l'état 37
     mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
+    mc_boolean  décalage et aller à l'état 39
+    mc_String   décalage et aller à l'état 40
     idf         décalage et aller à l'état 41
 
     type  aller à l'état 42
@@ -601,38 +628,38 @@ primary_expression (107)
     opt_modifiers             aller à l'état 26
     modifiers                 aller à l'état 9
     modifier                  aller à l'état 10
-    constructor_declaration   aller à l'état 29
     class_member_declaration  aller à l'état 44
+    constructor_declaration   aller à l'état 30
     field_declaration         aller à l'état 31
     method_declaration        aller à l'état 32
 
 
 état 29
 
-   27 class_member_declaration: constructor_declaration .
-
-    $défaut  réduction par utilisation de la règle 27 (class_member_declaration)
-
-
-état 30
-
    22 class_member_declarations: class_member_declaration .
 
     $défaut  réduction par utilisation de la règle 22 (class_member_declarations)
 
 
+état 30
+
+   26 class_member_declaration: constructor_declaration .
+
+    $défaut  réduction par utilisation de la règle 26 (class_member_declaration)
+
+
 état 31
 
-   25 class_member_declaration: field_declaration .
+   24 class_member_declaration: field_declaration .
 
-    $défaut  réduction par utilisation de la règle 25 (class_member_declaration)
+    $défaut  réduction par utilisation de la règle 24 (class_member_declaration)
 
 
 état 32
 
-   26 class_member_declaration: method_declaration .
+   25 class_member_declaration: method_declaration .
 
-    $défaut  réduction par utilisation de la règle 26 (class_member_declaration)
+    $défaut  réduction par utilisation de la règle 25 (class_member_declaration)
 
 
 état 33
@@ -644,73 +671,70 @@ primary_expression (107)
 
 état 34
 
-   33 method_declaration: opt_modifiers mc_void . mc_main '(' mc_String '[' ']' idf ')' $@2 block
-   45 type: mc_void .
-
-    mc_main  décalage et aller à l'état 45
-
-    $défaut  réduction par utilisation de la règle 45 (type)
-
-
-état 35
-
-   39 type: mc_int .
-
-    $défaut  réduction par utilisation de la règle 39 (type)
-
-
-état 36
-
-   44 type: mc_String .
+   44 type: mc_void .
 
     $défaut  réduction par utilisation de la règle 44 (type)
 
 
-état 37
+état 35
 
-   43 type: mc_boolean .
-
-    $défaut  réduction par utilisation de la règle 43 (type)
-
-
-état 38
-
-   42 type: mc_char .
-
-    $défaut  réduction par utilisation de la règle 42 (type)
-
-
-état 39
-
-   41 type: mc_double .
-
-    $défaut  réduction par utilisation de la règle 41 (type)
-
-
-état 40
-
-   40 type: mc_float .
+   40 type: mc_double .
 
     $défaut  réduction par utilisation de la règle 40 (type)
 
 
+état 36
+
+   38 type: mc_int .
+
+    $défaut  réduction par utilisation de la règle 38 (type)
+
+
+état 37
+
+   39 type: mc_float .
+
+    $défaut  réduction par utilisation de la règle 39 (type)
+
+
+état 38
+
+   41 type: mc_char .
+
+    $défaut  réduction par utilisation de la règle 41 (type)
+
+
+état 39
+
+   42 type: mc_boolean .
+
+    $défaut  réduction par utilisation de la règle 42 (type)
+
+
+état 40
+
+   43 type: mc_String .
+
+    $défaut  réduction par utilisation de la règle 43 (type)
+
+
 état 41
 
-   24 constructor_declaration: opt_modifiers idf . '(' parameters ')' block
-   46 type: idf .
+   28 constructor_declaration: opt_modifiers idf . '(' parameters ')' $@1 block
+   45 type: idf .
 
-    '('  décalage et aller à l'état 46
+    '('  décalage et aller à l'état 45
 
-    $défaut  réduction par utilisation de la règle 46 (type)
+    $défaut  réduction par utilisation de la règle 45 (type)
 
 
 état 42
 
-   28 field_declaration: opt_modifiers type . idf ';'
-   29                  | opt_modifiers type . idf '=' expression ';'
-   31 method_declaration: opt_modifiers type . idf '(' parameters ')' $@1 block
+   29 field_declaration: opt_modifiers type . idf ';'
+   30                  | opt_modifiers type . idf '=' expression ';'
+   32 method_declaration: opt_modifiers type . idf '(' parameters ')' $@2 block
 
-    idf  décalage et aller à l'état 47
+    idf  décalage et aller à l'état 46
 
 
 état 43
@@ -729,1560 +753,1762 @@ primary_expression (107)
 
 état 45
 
-   33 method_declaration: opt_modifiers mc_void mc_main . '(' mc_String '[' ']' idf ')' $@2 block
+   28 constructor_declaration: opt_modifiers idf '(' . parameters ')' $@1 block
 
-    '('  décalage et aller à l'état 48
+    mc_void     décalage et aller à l'état 34
+    mc_double   décalage et aller à l'état 35
+    mc_int      décalage et aller à l'état 36
+    mc_float    décalage et aller à l'état 37
+    mc_char     décalage et aller à l'état 38
+    mc_boolean  décalage et aller à l'état 39
+    mc_String   décalage et aller à l'état 40
+    idf         décalage et aller à l'état 47
+
+    $défaut  réduction par utilisation de la règle 33 (parameters)
+
+    parameters      aller à l'état 48
+    parameter_list  aller à l'état 49
+    parameter       aller à l'état 50
+    type            aller à l'état 51
 
 
 état 46
 
-   24 constructor_declaration: opt_modifiers idf '(' . parameters ')' block
+   29 field_declaration: opt_modifiers type idf . ';'
+   30                  | opt_modifiers type idf . '=' expression ';'
+   32 method_declaration: opt_modifiers type idf . '(' parameters ')' $@2 block
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    idf         décalage et aller à l'état 50
-
-    $défaut  réduction par utilisation de la règle 34 (parameters)
-
-    parameters      aller à l'état 51
-    parameter_list  aller à l'état 52
-    parameter       aller à l'état 53
-    type            aller à l'état 54
+    '='  décalage et aller à l'état 52
+    '('  décalage et aller à l'état 53
+    ';'  décalage et aller à l'état 54
 
 
 état 47
 
-   28 field_declaration: opt_modifiers type idf . ';'
-   29                  | opt_modifiers type idf . '=' expression ';'
-   31 method_declaration: opt_modifiers type idf . '(' parameters ')' $@1 block
-
-    '='  décalage et aller à l'état 55
-    '('  décalage et aller à l'état 56
-    ';'  décalage et aller à l'état 57
-
-
-état 48
-
-   33 method_declaration: opt_modifiers mc_void mc_main '(' . mc_String '[' ']' idf ')' $@2 block
-
-    mc_String  décalage et aller à l'état 58
-
-
-état 49
-
-   45 type: mc_void .
+   45 type: idf .
 
     $défaut  réduction par utilisation de la règle 45 (type)
 
 
+état 48
+
+   28 constructor_declaration: opt_modifiers idf '(' parameters . ')' $@1 block
+
+    ')'  décalage et aller à l'état 55
+
+
+état 49
+
+   34 parameters: parameter_list .
+   36 parameter_list: parameter_list . ',' parameter
+
+    ','  décalage et aller à l'état 56
+
+    $défaut  réduction par utilisation de la règle 34 (parameters)
+
+
 état 50
 
-   46 type: idf .
+   35 parameter_list: parameter .
 
-    $défaut  réduction par utilisation de la règle 46 (type)
+    $défaut  réduction par utilisation de la règle 35 (parameter_list)
 
 
 état 51
 
-   24 constructor_declaration: opt_modifiers idf '(' parameters . ')' block
+   37 parameter: type . idf
 
-    ')'  décalage et aller à l'état 59
+    idf  décalage et aller à l'état 57
 
 
 état 52
 
-   35 parameters: parameter_list .
-   37 parameter_list: parameter_list . ',' parameter
+   30 field_declaration: opt_modifiers type idf '=' . expression ';'
 
-    ','  décalage et aller à l'état 60
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
 
-    $défaut  réduction par utilisation de la règle 35 (parameters)
+    expression                 aller à l'état 66
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 53
 
-   36 parameter_list: parameter .
+   32 method_declaration: opt_modifiers type idf '(' . parameters ')' $@2 block
 
-    $défaut  réduction par utilisation de la règle 36 (parameter_list)
+    mc_void     décalage et aller à l'état 34
+    mc_double   décalage et aller à l'état 35
+    mc_int      décalage et aller à l'état 36
+    mc_float    décalage et aller à l'état 37
+    mc_char     décalage et aller à l'état 38
+    mc_boolean  décalage et aller à l'état 39
+    mc_String   décalage et aller à l'état 40
+    idf         décalage et aller à l'état 47
+
+    $défaut  réduction par utilisation de la règle 33 (parameters)
+
+    parameters      aller à l'état 74
+    parameter_list  aller à l'état 49
+    parameter       aller à l'état 50
+    type            aller à l'état 51
 
 
 état 54
 
-   38 parameter: type . idf
+   29 field_declaration: opt_modifiers type idf ';' .
 
-    idf  décalage et aller à l'état 61
+    $défaut  réduction par utilisation de la règle 29 (field_declaration)
 
 
 état 55
 
-   29 field_declaration: opt_modifiers type idf '=' . expression ';'
+   28 constructor_declaration: opt_modifiers idf '(' parameters ')' . $@1 block
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
+    $défaut  réduction par utilisation de la règle 27 ($@1)
 
-    expression                 aller à l'état 68
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $@1  aller à l'état 75
 
 
 état 56
 
-   31 method_declaration: opt_modifiers type idf '(' . parameters ')' $@1 block
+   36 parameter_list: parameter_list ',' . parameter
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_boolean  décalage et aller à l'état 37
+    mc_void     décalage et aller à l'état 34
+    mc_double   décalage et aller à l'état 35
+    mc_int      décalage et aller à l'état 36
+    mc_float    décalage et aller à l'état 37
     mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    idf         décalage et aller à l'état 50
+    mc_boolean  décalage et aller à l'état 39
+    mc_String   décalage et aller à l'état 40
+    idf         décalage et aller à l'état 47
 
-    $défaut  réduction par utilisation de la règle 34 (parameters)
-
-    parameters      aller à l'état 75
-    parameter_list  aller à l'état 52
-    parameter       aller à l'état 53
-    type            aller à l'état 54
+    parameter  aller à l'état 76
+    type       aller à l'état 51
 
 
 état 57
 
-   28 field_declaration: opt_modifiers type idf ';' .
+   37 parameter: type idf .
 
-    $défaut  réduction par utilisation de la règle 28 (field_declaration)
+    $défaut  réduction par utilisation de la règle 37 (parameter)
 
 
 état 58
 
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String . '[' ']' idf ')' $@2 block
+   83 assignable: mc_this . '.' idf
+   95 primary_expression: mc_this . '.' idf
 
-    '['  décalage et aller à l'état 76
+    '.'  décalage et aller à l'état 77
 
 
 état 59
 
-   24 constructor_declaration: opt_modifiers idf '(' parameters ')' . block
+  103 primary_expression: mc_new . idf '(' arguments ')'
 
-    acco  décalage et aller à l'état 77
-
-    block  aller à l'état 78
+    idf  décalage et aller à l'état 78
 
 
 état 60
 
-   37 parameter_list: parameter_list ',' . parameter
+   86 logical_expression: not . comparison_expression
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    idf         décalage et aller à l'état 50
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
 
-    parameter  aller à l'état 79
-    type       aller à l'état 54
+    comparison_expression      aller à l'état 81
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 61
 
-   38 parameter: type idf .
+   82 assignable: idf .
+   94 primary_expression: idf . '.' idf
+   96                   | idf .
+   97                   | idf . inc
+   98                   | idf . dec
 
-    $défaut  réduction par utilisation de la règle 38 (parameter)
+    inc  décalage et aller à l'état 82
+    dec  décalage et aller à l'état 83
+    '.'  décalage et aller à l'état 84
+
+    '='      réduction par utilisation de la règle 82 (assignable)
+    $défaut  réduction par utilisation de la règle 96 (primary_expression)
 
 
 état 62
 
-   84 logical_expression: not . comparison_expression
+  101 primary_expression: chaine .
 
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    comparison_expression      aller à l'état 81
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 101 (primary_expression)
 
 
 état 63
-
-   80 assignment_expression: idf . '=' assignment_expression
-   98 primary_expression: idf .
-
-    '='  décalage et aller à l'état 82
-
-    $défaut  réduction par utilisation de la règle 98 (primary_expression)
-
-
-état 64
-
-  100 primary_expression: chaine .
-
-    $défaut  réduction par utilisation de la règle 100 (primary_expression)
-
-
-état 65
 
    99 primary_expression: entier .
 
     $défaut  réduction par utilisation de la règle 99 (primary_expression)
 
 
+état 64
+
+  100 primary_expression: decimal_num .
+
+    $défaut  réduction par utilisation de la règle 100 (primary_expression)
+
+
+état 65
+
+  102 primary_expression: '(' . expression ')'
+
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    expression                 aller à l'état 85
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
 état 66
 
-  101 primary_expression: decimal .
+   30 field_declaration: opt_modifiers type idf '=' expression . ';'
 
-    $défaut  réduction par utilisation de la règle 101 (primary_expression)
+    ';'  décalage et aller à l'état 86
 
 
 état 67
 
-  102 primary_expression: '(' . expression ')'
+   79 expression: assignment_expression .
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    expression                 aller à l'état 83
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 79 (expression)
 
 
 état 68
 
-   29 field_declaration: opt_modifiers type idf '=' expression . ';'
+   81 assignment_expression: assignable . '=' assignment_expression
 
-    ';'  décalage et aller à l'état 84
+    '='  décalage et aller à l'état 87
 
 
 état 69
 
-   78 expression: assignment_expression .
+   80 assignment_expression: logical_expression .
+   85 logical_expression: logical_expression . and comparison_expression
 
-    $défaut  réduction par utilisation de la règle 78 (expression)
-
-
-état 70
-
-   79 assignment_expression: logical_expression .
-   82 logical_expression: logical_expression . and comparison_expression
-   83                   | logical_expression . or comparison_expression
-
-    and  décalage et aller à l'état 85
-    or   décalage et aller à l'état 86
-
-    $défaut  réduction par utilisation de la règle 79 (assignment_expression)
-
-
-état 71
-
-   81 logical_expression: comparison_expression .
-
-    $défaut  réduction par utilisation de la règle 81 (logical_expression)
-
-
-état 72
-
-   85 comparison_expression: additive_expression .
-   86                      | additive_expression . eq additive_expression
-   87                      | additive_expression . neq additive_expression
-   88                      | additive_expression . '<' additive_expression
-   89                      | additive_expression . '>' additive_expression
-   90                      | additive_expression . leq additive_expression
-   91                      | additive_expression . geq additive_expression
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
-
-    geq  décalage et aller à l'état 87
-    leq  décalage et aller à l'état 88
-    eq   décalage et aller à l'état 89
-    neq  décalage et aller à l'état 90
-    '<'  décalage et aller à l'état 91
-    '>'  décalage et aller à l'état 92
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
-
-    $défaut  réduction par utilisation de la règle 85 (comparison_expression)
-
-
-état 73
-
-   92 additive_expression: multiplicative_expression .
-   96 multiplicative_expression: multiplicative_expression . '*' primary_expression
-   97                          | multiplicative_expression . '/' primary_expression
-
-    '*'  décalage et aller à l'état 95
-    '/'  décalage et aller à l'état 96
-
-    $défaut  réduction par utilisation de la règle 92 (additive_expression)
-
-
-état 74
-
-   95 multiplicative_expression: primary_expression .
-  103 primary_expression: primary_expression . '.' idf
-
-    '.'  décalage et aller à l'état 97
-
-    $défaut  réduction par utilisation de la règle 95 (multiplicative_expression)
-
-
-état 75
-
-   31 method_declaration: opt_modifiers type idf '(' parameters . ')' $@1 block
-
-    ')'  décalage et aller à l'état 98
-
-
-état 76
-
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' . ']' idf ')' $@2 block
-
-    ']'  décalage et aller à l'état 99
-
-
-état 77
-
-   48 block: acco . $@3 statements accf
-
-    $défaut  réduction par utilisation de la règle 47 ($@3)
-
-    $@3  aller à l'état 100
-
-
-état 78
-
-   24 constructor_declaration: opt_modifiers idf '(' parameters ')' block .
-
-    $défaut  réduction par utilisation de la règle 24 (constructor_declaration)
-
-
-état 79
-
-   37 parameter_list: parameter_list ',' parameter .
-
-    $défaut  réduction par utilisation de la règle 37 (parameter_list)
-
-
-état 80
-
-   98 primary_expression: idf .
-
-    $défaut  réduction par utilisation de la règle 98 (primary_expression)
-
-
-état 81
-
-   84 logical_expression: not comparison_expression .
-
-    $défaut  réduction par utilisation de la règle 84 (logical_expression)
-
-
-état 82
-
-   80 assignment_expression: idf '=' . assignment_expression
-
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    assignment_expression      aller à l'état 101
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 83
-
-  102 primary_expression: '(' expression . ')'
-
-    ')'  décalage et aller à l'état 102
-
-
-état 84
-
-   29 field_declaration: opt_modifiers type idf '=' expression ';' .
-
-    $défaut  réduction par utilisation de la règle 29 (field_declaration)
-
-
-état 85
-
-   82 logical_expression: logical_expression and . comparison_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    comparison_expression      aller à l'état 103
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 86
-
-   83 logical_expression: logical_expression or . comparison_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    comparison_expression      aller à l'état 104
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 87
-
-   91 comparison_expression: additive_expression geq . additive_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    additive_expression        aller à l'état 105
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 88
-
-   90 comparison_expression: additive_expression leq . additive_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    additive_expression        aller à l'état 106
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 89
-
-   86 comparison_expression: additive_expression eq . additive_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    additive_expression        aller à l'état 107
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 90
-
-   87 comparison_expression: additive_expression neq . additive_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    additive_expression        aller à l'état 108
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 91
-
-   88 comparison_expression: additive_expression '<' . additive_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    additive_expression        aller à l'état 109
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 92
-
-   89 comparison_expression: additive_expression '>' . additive_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    additive_expression        aller à l'état 110
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
-
-
-état 93
-
-   93 additive_expression: additive_expression '+' . multiplicative_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    multiplicative_expression  aller à l'état 111
-    primary_expression         aller à l'état 74
-
-
-état 94
-
-   94 additive_expression: additive_expression '-' . multiplicative_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    multiplicative_expression  aller à l'état 112
-    primary_expression         aller à l'état 74
-
-
-état 95
-
-   96 multiplicative_expression: multiplicative_expression '*' . primary_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    primary_expression  aller à l'état 113
-
-
-état 96
-
-   97 multiplicative_expression: multiplicative_expression '/' . primary_expression
-
-    idf      décalage et aller à l'état 80
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    primary_expression  aller à l'état 114
-
-
-état 97
-
-  103 primary_expression: primary_expression '.' . idf
-
-    idf  décalage et aller à l'état 115
-
-
-état 98
-
-   31 method_declaration: opt_modifiers type idf '(' parameters ')' . $@1 block
-
-    $défaut  réduction par utilisation de la règle 30 ($@1)
-
-    $@1  aller à l'état 116
-
-
-état 99
-
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' ']' . idf ')' $@2 block
-
-    idf  décalage et aller à l'état 117
-
-
-état 100
-
-   48 block: acco $@3 . statements accf
-
-    $défaut  réduction par utilisation de la règle 49 (statements)
-
-    statements  aller à l'état 118
-
-
-état 101
-
-   80 assignment_expression: idf '=' assignment_expression .
+    and  décalage et aller à l'état 88
 
     $défaut  réduction par utilisation de la règle 80 (assignment_expression)
 
 
+état 70
+
+   84 logical_expression: comparison_expression .
+
+    $défaut  réduction par utilisation de la règle 84 (logical_expression)
+
+
+état 71
+
+  111 multiplicative_expression: primary_expression .
+
+    $défaut  réduction par utilisation de la règle 111 (multiplicative_expression)
+
+
+état 72
+
+   87 comparison_expression: additive_expression .
+   88                      | additive_expression . eq additive_expression
+   89                      | additive_expression . neq additive_expression
+   90                      | additive_expression . '>' additive_expression
+   91                      | additive_expression . '<' additive_expression
+   92                      | additive_expression . leq additive_expression
+   93                      | additive_expression . geq additive_expression
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
+
+    geq  décalage et aller à l'état 89
+    leq  décalage et aller à l'état 90
+    eq   décalage et aller à l'état 91
+    neq  décalage et aller à l'état 92
+    '<'  décalage et aller à l'état 93
+    '>'  décalage et aller à l'état 94
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
+
+    $défaut  réduction par utilisation de la règle 87 (comparison_expression)
+
+
+état 73
+
+  108 additive_expression: multiplicative_expression .
+  112 multiplicative_expression: multiplicative_expression . '*' primary_expression
+  113                          | multiplicative_expression . '/' primary_expression
+
+    '*'  décalage et aller à l'état 97
+    '/'  décalage et aller à l'état 98
+
+    $défaut  réduction par utilisation de la règle 108 (additive_expression)
+
+
+état 74
+
+   32 method_declaration: opt_modifiers type idf '(' parameters . ')' $@2 block
+
+    ')'  décalage et aller à l'état 99
+
+
+état 75
+
+   28 constructor_declaration: opt_modifiers idf '(' parameters ')' $@1 . block
+
+    acco  décalage et aller à l'état 100
+
+    block  aller à l'état 101
+
+
+état 76
+
+   36 parameter_list: parameter_list ',' parameter .
+
+    $défaut  réduction par utilisation de la règle 36 (parameter_list)
+
+
+état 77
+
+   83 assignable: mc_this '.' . idf
+   95 primary_expression: mc_this '.' . idf
+
+    idf  décalage et aller à l'état 102
+
+
+état 78
+
+  103 primary_expression: mc_new idf . '(' arguments ')'
+
+    '('  décalage et aller à l'état 103
+
+
+état 79
+
+   95 primary_expression: mc_this . '.' idf
+
+    '.'  décalage et aller à l'état 104
+
+
+état 80
+
+   94 primary_expression: idf . '.' idf
+   96                   | idf .
+   97                   | idf . inc
+   98                   | idf . dec
+
+    inc  décalage et aller à l'état 82
+    dec  décalage et aller à l'état 83
+    '.'  décalage et aller à l'état 84
+
+    $défaut  réduction par utilisation de la règle 96 (primary_expression)
+
+
+état 81
+
+   86 logical_expression: not comparison_expression .
+
+    $défaut  réduction par utilisation de la règle 86 (logical_expression)
+
+
+état 82
+
+   97 primary_expression: idf inc .
+
+    $défaut  réduction par utilisation de la règle 97 (primary_expression)
+
+
+état 83
+
+   98 primary_expression: idf dec .
+
+    $défaut  réduction par utilisation de la règle 98 (primary_expression)
+
+
+état 84
+
+   94 primary_expression: idf '.' . idf
+
+    idf  décalage et aller à l'état 105
+
+
+état 85
+
+  102 primary_expression: '(' expression . ')'
+
+    ')'  décalage et aller à l'état 106
+
+
+état 86
+
+   30 field_declaration: opt_modifiers type idf '=' expression ';' .
+
+    $défaut  réduction par utilisation de la règle 30 (field_declaration)
+
+
+état 87
+
+   81 assignment_expression: assignable '=' . assignment_expression
+
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    assignment_expression      aller à l'état 107
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
+état 88
+
+   85 logical_expression: logical_expression and . comparison_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    comparison_expression      aller à l'état 108
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
+état 89
+
+   93 comparison_expression: additive_expression geq . additive_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 109
+    multiplicative_expression  aller à l'état 73
+
+
+état 90
+
+   92 comparison_expression: additive_expression leq . additive_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 110
+    multiplicative_expression  aller à l'état 73
+
+
+état 91
+
+   88 comparison_expression: additive_expression eq . additive_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 111
+    multiplicative_expression  aller à l'état 73
+
+
+état 92
+
+   89 comparison_expression: additive_expression neq . additive_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 112
+    multiplicative_expression  aller à l'état 73
+
+
+état 93
+
+   91 comparison_expression: additive_expression '<' . additive_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 113
+    multiplicative_expression  aller à l'état 73
+
+
+état 94
+
+   90 comparison_expression: additive_expression '>' . additive_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 114
+    multiplicative_expression  aller à l'état 73
+
+
+état 95
+
+  109 additive_expression: additive_expression '+' . multiplicative_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    multiplicative_expression  aller à l'état 115
+
+
+état 96
+
+  110 additive_expression: additive_expression '-' . multiplicative_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression         aller à l'état 71
+    multiplicative_expression  aller à l'état 116
+
+
+état 97
+
+  112 multiplicative_expression: multiplicative_expression '*' . primary_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression  aller à l'état 117
+
+
+état 98
+
+  113 multiplicative_expression: multiplicative_expression '/' . primary_expression
+
+    mc_this      décalage et aller à l'état 79
+    mc_new       décalage et aller à l'état 59
+    idf          décalage et aller à l'état 80
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    primary_expression  aller à l'état 118
+
+
+état 99
+
+   32 method_declaration: opt_modifiers type idf '(' parameters ')' . $@2 block
+
+    $défaut  réduction par utilisation de la règle 31 ($@2)
+
+    $@2  aller à l'état 119
+
+
+état 100
+
+   47 block: acco . $@3 statements accf
+
+    $défaut  réduction par utilisation de la règle 46 ($@3)
+
+    $@3  aller à l'état 120
+
+
+état 101
+
+   28 constructor_declaration: opt_modifiers idf '(' parameters ')' $@1 block .
+
+    $défaut  réduction par utilisation de la règle 28 (constructor_declaration)
+
+
 état 102
+
+   83 assignable: mc_this '.' idf .
+   95 primary_expression: mc_this '.' idf .
+
+    '='      réduction par utilisation de la règle 83 (assignable)
+    $défaut  réduction par utilisation de la règle 95 (primary_expression)
+
+
+état 103
+
+  103 primary_expression: mc_new idf '(' . arguments ')'
+
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    $défaut  réduction par utilisation de la règle 104 (arguments)
+
+    expression                 aller à l'état 121
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    arguments                  aller à l'état 122
+    expression_list            aller à l'état 123
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
+état 104
+
+   95 primary_expression: mc_this '.' . idf
+
+    idf  décalage et aller à l'état 124
+
+
+état 105
+
+   94 primary_expression: idf '.' idf .
+
+    $défaut  réduction par utilisation de la règle 94 (primary_expression)
+
+
+état 106
 
   102 primary_expression: '(' expression ')' .
 
     $défaut  réduction par utilisation de la règle 102 (primary_expression)
 
 
-état 103
-
-   82 logical_expression: logical_expression and comparison_expression .
-
-    $défaut  réduction par utilisation de la règle 82 (logical_expression)
-
-
-état 104
-
-   83 logical_expression: logical_expression or comparison_expression .
-
-    $défaut  réduction par utilisation de la règle 83 (logical_expression)
-
-
-état 105
-
-   91 comparison_expression: additive_expression geq additive_expression .
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
-
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
-
-    $défaut  réduction par utilisation de la règle 91 (comparison_expression)
-
-
-état 106
-
-   90 comparison_expression: additive_expression leq additive_expression .
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
-
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
-
-    $défaut  réduction par utilisation de la règle 90 (comparison_expression)
-
-
 état 107
 
-   86 comparison_expression: additive_expression eq additive_expression .
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
+   81 assignment_expression: assignable '=' assignment_expression .
 
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
-
-    $défaut  réduction par utilisation de la règle 86 (comparison_expression)
+    $défaut  réduction par utilisation de la règle 81 (assignment_expression)
 
 
 état 108
 
-   87 comparison_expression: additive_expression neq additive_expression .
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
+   85 logical_expression: logical_expression and comparison_expression .
 
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
-
-    $défaut  réduction par utilisation de la règle 87 (comparison_expression)
+    $défaut  réduction par utilisation de la règle 85 (logical_expression)
 
 
 état 109
 
-   88 comparison_expression: additive_expression '<' additive_expression .
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
+   93 comparison_expression: additive_expression geq additive_expression .
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
 
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
 
-    $défaut  réduction par utilisation de la règle 88 (comparison_expression)
+    $défaut  réduction par utilisation de la règle 93 (comparison_expression)
 
 
 état 110
 
-   89 comparison_expression: additive_expression '>' additive_expression .
-   93 additive_expression: additive_expression . '+' multiplicative_expression
-   94                    | additive_expression . '-' multiplicative_expression
+   92 comparison_expression: additive_expression leq additive_expression .
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
 
-    '+'  décalage et aller à l'état 93
-    '-'  décalage et aller à l'état 94
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
 
-    $défaut  réduction par utilisation de la règle 89 (comparison_expression)
+    $défaut  réduction par utilisation de la règle 92 (comparison_expression)
 
 
 état 111
 
-   93 additive_expression: additive_expression '+' multiplicative_expression .
-   96 multiplicative_expression: multiplicative_expression . '*' primary_expression
-   97                          | multiplicative_expression . '/' primary_expression
+   88 comparison_expression: additive_expression eq additive_expression .
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
 
-    '*'  décalage et aller à l'état 95
-    '/'  décalage et aller à l'état 96
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
 
-    $défaut  réduction par utilisation de la règle 93 (additive_expression)
+    $défaut  réduction par utilisation de la règle 88 (comparison_expression)
 
 
 état 112
 
-   94 additive_expression: additive_expression '-' multiplicative_expression .
-   96 multiplicative_expression: multiplicative_expression . '*' primary_expression
-   97                          | multiplicative_expression . '/' primary_expression
+   89 comparison_expression: additive_expression neq additive_expression .
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
 
-    '*'  décalage et aller à l'état 95
-    '/'  décalage et aller à l'état 96
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
 
-    $défaut  réduction par utilisation de la règle 94 (additive_expression)
+    $défaut  réduction par utilisation de la règle 89 (comparison_expression)
 
 
 état 113
 
-   96 multiplicative_expression: multiplicative_expression '*' primary_expression .
-  103 primary_expression: primary_expression . '.' idf
+   91 comparison_expression: additive_expression '<' additive_expression .
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
 
-    '.'  décalage et aller à l'état 97
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
 
-    $défaut  réduction par utilisation de la règle 96 (multiplicative_expression)
+    $défaut  réduction par utilisation de la règle 91 (comparison_expression)
 
 
 état 114
 
-   97 multiplicative_expression: multiplicative_expression '/' primary_expression .
-  103 primary_expression: primary_expression . '.' idf
+   90 comparison_expression: additive_expression '>' additive_expression .
+  109 additive_expression: additive_expression . '+' multiplicative_expression
+  110                    | additive_expression . '-' multiplicative_expression
 
-    '.'  décalage et aller à l'état 97
+    '+'  décalage et aller à l'état 95
+    '-'  décalage et aller à l'état 96
 
-    $défaut  réduction par utilisation de la règle 97 (multiplicative_expression)
+    $défaut  réduction par utilisation de la règle 90 (comparison_expression)
 
 
 état 115
 
-  103 primary_expression: primary_expression '.' idf .
+  109 additive_expression: additive_expression '+' multiplicative_expression .
+  112 multiplicative_expression: multiplicative_expression . '*' primary_expression
+  113                          | multiplicative_expression . '/' primary_expression
 
-    $défaut  réduction par utilisation de la règle 103 (primary_expression)
+    '*'  décalage et aller à l'état 97
+    '/'  décalage et aller à l'état 98
+
+    $défaut  réduction par utilisation de la règle 109 (additive_expression)
 
 
 état 116
 
-   31 method_declaration: opt_modifiers type idf '(' parameters ')' $@1 . block
+  110 additive_expression: additive_expression '-' multiplicative_expression .
+  112 multiplicative_expression: multiplicative_expression . '*' primary_expression
+  113                          | multiplicative_expression . '/' primary_expression
 
-    acco  décalage et aller à l'état 77
+    '*'  décalage et aller à l'état 97
+    '/'  décalage et aller à l'état 98
 
-    block  aller à l'état 119
+    $défaut  réduction par utilisation de la règle 110 (additive_expression)
 
 
 état 117
 
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' ']' idf . ')' $@2 block
+  112 multiplicative_expression: multiplicative_expression '*' primary_expression .
 
-    ')'  décalage et aller à l'état 120
+    $défaut  réduction par utilisation de la règle 112 (multiplicative_expression)
 
 
 état 118
 
-   48 block: acco $@3 statements . accf
-   50 statements: statements . statement
+  113 multiplicative_expression: multiplicative_expression '/' primary_expression .
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_return   décalage et aller à l'état 121
-    mc_if       décalage et aller à l'état 122
-    mc_for      décalage et aller à l'état 123
-    mc_while    décalage et aller à l'état 124
-    mc_System   décalage et aller à l'état 125
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    acco        décalage et aller à l'état 77
-    accf        décalage et aller à l'état 126
-    not         décalage et aller à l'état 62
-    idf         décalage et aller à l'état 127
-    chaine      décalage et aller à l'état 64
-    entier      décalage et aller à l'état 65
-    decimal     décalage et aller à l'état 66
-    '('         décalage et aller à l'état 67
-
-    type                       aller à l'état 128
-    block                      aller à l'état 129
-    statement                  aller à l'état 130
-    declaration_statement      aller à l'état 131
-    expression_statement       aller à l'état 132
-    if_statement               aller à l'état 133
-    for_statement              aller à l'état 134
-    while_statement            aller à l'état 135
-    return_statement           aller à l'état 136
-    io_statement               aller à l'état 137
-    expression                 aller à l'état 138
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 113 (multiplicative_expression)
 
 
 état 119
 
-   31 method_declaration: opt_modifiers type idf '(' parameters ')' $@1 block .
+   32 method_declaration: opt_modifiers type idf '(' parameters ')' $@2 . block
 
-    $défaut  réduction par utilisation de la règle 31 (method_declaration)
+    acco  décalage et aller à l'état 100
+
+    block  aller à l'état 125
 
 
 état 120
 
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' ']' idf ')' . $@2 block
+   47 block: acco $@3 . statements accf
 
-    $défaut  réduction par utilisation de la règle 32 ($@2)
+    $défaut  réduction par utilisation de la règle 48 (statements)
 
-    $@2  aller à l'état 139
+    statements  aller à l'état 126
 
 
 état 121
 
-   75 return_statement: mc_return . ';'
-   76                 | mc_return . expression ';'
+  106 expression_list: expression .
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-    ';'      décalage et aller à l'état 140
-
-    expression                 aller à l'état 141
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 106 (expression_list)
 
 
 état 122
 
-   62 if_statement: mc_if . '(' expression ')' statement
-   63             | mc_if . '(' expression ')' statement mc_else statement
+  103 primary_expression: mc_new idf '(' arguments . ')'
 
-    '('  décalage et aller à l'état 142
+    ')'  décalage et aller à l'état 127
 
 
 état 123
 
-   66 for_statement: mc_for . '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement
+  105 arguments: expression_list .
+  107 expression_list: expression_list . ',' expression
 
-    '('  décalage et aller à l'état 143
+    ','  décalage et aller à l'état 128
+
+    $défaut  réduction par utilisation de la règle 105 (arguments)
 
 
 état 124
 
-   74 while_statement: mc_while . '(' expression ')' statement
+   95 primary_expression: mc_this '.' idf .
 
-    '('  décalage et aller à l'état 144
+    $défaut  réduction par utilisation de la règle 95 (primary_expression)
 
 
 état 125
 
-   77 io_statement: mc_System . '.' mc_out '.' mc_println '(' expression ')' ';'
+   32 method_declaration: opt_modifiers type idf '(' parameters ')' $@2 block .
 
-    '.'  décalage et aller à l'état 145
+    $défaut  réduction par utilisation de la règle 32 (method_declaration)
 
 
 état 126
 
-   48 block: acco $@3 statements accf .
+   47 block: acco $@3 statements . accf
+   49 statements: statements . statement
 
-    $défaut  réduction par utilisation de la règle 48 (block)
+    mc_void      décalage et aller à l'état 34
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    mc_return    décalage et aller à l'état 129
+    mc_if        décalage et aller à l'état 130
+    mc_for       décalage et aller à l'état 131
+    mc_while     décalage et aller à l'état 132
+    mc_System    décalage et aller à l'état 133
+    mc_double    décalage et aller à l'état 35
+    acco         décalage et aller à l'état 100
+    accf         décalage et aller à l'état 134
+    not          décalage et aller à l'état 60
+    mc_int       décalage et aller à l'état 36
+    mc_float     décalage et aller à l'état 37
+    mc_char      décalage et aller à l'état 38
+    mc_boolean   décalage et aller à l'état 39
+    mc_String    décalage et aller à l'état 40
+    idf          décalage et aller à l'état 135
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    type                       aller à l'état 136
+    block                      aller à l'état 137
+    statement                  aller à l'état 138
+    declaration_statement      aller à l'état 139
+    expression_statement       aller à l'état 140
+    if_statement               aller à l'état 141
+    for_statement              aller à l'état 142
+    while_statement            aller à l'état 143
+    return_statement           aller à l'état 144
+    io_statement               aller à l'état 145
+    expression                 aller à l'état 146
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 127
 
-   46 type: idf .
-   80 assignment_expression: idf . '=' assignment_expression
-   98 primary_expression: idf .
+  103 primary_expression: mc_new idf '(' arguments ')' .
 
-    '='  décalage et aller à l'état 82
-
-    idf      réduction par utilisation de la règle 46 (type)
-    $défaut  réduction par utilisation de la règle 98 (primary_expression)
+    $défaut  réduction par utilisation de la règle 103 (primary_expression)
 
 
 état 128
 
-   59 declaration_statement: type . idf ';'
-   60                      | type . idf '=' expression ';'
+  107 expression_list: expression_list ',' . expression
 
-    idf  décalage et aller à l'état 146
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    expression                 aller à l'état 147
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 129
 
-   57 statement: block .
+   76 return_statement: mc_return . ';'
+   77                 | mc_return . expression ';'
 
-    $défaut  réduction par utilisation de la règle 57 (statement)
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+    ';'          décalage et aller à l'état 148
+
+    expression                 aller à l'état 149
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 130
 
-   50 statements: statements statement .
+   64 if_statement: mc_if . '(' expression ')' statement
+   65             | mc_if . '(' expression ')' statement mc_else statement
 
-    $défaut  réduction par utilisation de la règle 50 (statements)
+    '('  décalage et aller à l'état 150
 
 
 état 131
 
-   51 statement: declaration_statement .
+   68 for_statement: mc_for . '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement
 
-    $défaut  réduction par utilisation de la règle 51 (statement)
+    '('  décalage et aller à l'état 151
 
 
 état 132
 
-   52 statement: expression_statement .
+   75 while_statement: mc_while . '(' expression ')' statement
 
-    $défaut  réduction par utilisation de la règle 52 (statement)
+    '('  décalage et aller à l'état 152
 
 
 état 133
 
-   53 statement: if_statement .
+   78 io_statement: mc_System . '.' mc_out '.' mc_println '(' expression ')' ';'
 
-    $défaut  réduction par utilisation de la règle 53 (statement)
+    '.'  décalage et aller à l'état 153
 
 
 état 134
 
-   54 statement: for_statement .
+   47 block: acco $@3 statements accf .
 
-    $défaut  réduction par utilisation de la règle 54 (statement)
+    $défaut  réduction par utilisation de la règle 47 (block)
 
 
 état 135
 
-   55 statement: while_statement .
+   45 type: idf .
+   82 assignable: idf .
+   94 primary_expression: idf . '.' idf
+   96                   | idf .
+   97                   | idf . inc
+   98                   | idf . dec
 
-    $défaut  réduction par utilisation de la règle 55 (statement)
+    inc  décalage et aller à l'état 82
+    dec  décalage et aller à l'état 83
+    '.'  décalage et aller à l'état 84
+
+    idf      réduction par utilisation de la règle 45 (type)
+    '='      réduction par utilisation de la règle 82 (assignable)
+    $défaut  réduction par utilisation de la règle 96 (primary_expression)
 
 
 état 136
 
-   56 statement: return_statement .
+   58 declaration_statement: type . declarator_list ';'
 
-    $défaut  réduction par utilisation de la règle 56 (statement)
+    idf  décalage et aller à l'état 154
+
+    declarator_list  aller à l'état 155
+    declarator       aller à l'état 156
 
 
 état 137
 
-   58 statement: io_statement .
+   56 statement: block .
 
-    $défaut  réduction par utilisation de la règle 58 (statement)
+    $défaut  réduction par utilisation de la règle 56 (statement)
 
 
 état 138
 
-   61 expression_statement: expression . ';'
+   49 statements: statements statement .
 
-    ';'  décalage et aller à l'état 147
+    $défaut  réduction par utilisation de la règle 49 (statements)
 
 
 état 139
 
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' ']' idf ')' $@2 . block
+   50 statement: declaration_statement .
 
-    acco  décalage et aller à l'état 77
-
-    block  aller à l'état 148
+    $défaut  réduction par utilisation de la règle 50 (statement)
 
 
 état 140
 
-   75 return_statement: mc_return ';' .
+   51 statement: expression_statement .
 
-    $défaut  réduction par utilisation de la règle 75 (return_statement)
+    $défaut  réduction par utilisation de la règle 51 (statement)
 
 
 état 141
 
-   76 return_statement: mc_return expression . ';'
+   52 statement: if_statement .
 
-    ';'  décalage et aller à l'état 149
+    $défaut  réduction par utilisation de la règle 52 (statement)
 
 
 état 142
 
-   62 if_statement: mc_if '(' . expression ')' statement
-   63             | mc_if '(' . expression ')' statement mc_else statement
+   53 statement: for_statement .
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    expression                 aller à l'état 150
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 53 (statement)
 
 
 état 143
 
-   66 for_statement: mc_for '(' . $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement
+   54 statement: while_statement .
 
-    $défaut  réduction par utilisation de la règle 64 ($@4)
-
-    $@4  aller à l'état 151
+    $défaut  réduction par utilisation de la règle 54 (statement)
 
 
 état 144
 
-   74 while_statement: mc_while '(' . expression ')' statement
+   55 statement: return_statement .
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    expression                 aller à l'état 152
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 55 (statement)
 
 
 état 145
 
-   77 io_statement: mc_System '.' . mc_out '.' mc_println '(' expression ')' ';'
+   57 statement: io_statement .
 
-    mc_out  décalage et aller à l'état 153
+    $défaut  réduction par utilisation de la règle 57 (statement)
 
 
 état 146
 
-   59 declaration_statement: type idf . ';'
-   60                      | type idf . '=' expression ';'
+   63 expression_statement: expression . ';'
 
-    '='  décalage et aller à l'état 154
-    ';'  décalage et aller à l'état 155
+    ';'  décalage et aller à l'état 157
 
 
 état 147
 
-   61 expression_statement: expression ';' .
+  107 expression_list: expression_list ',' expression .
 
-    $défaut  réduction par utilisation de la règle 61 (expression_statement)
+    $défaut  réduction par utilisation de la règle 107 (expression_list)
 
 
 état 148
 
-   33 method_declaration: opt_modifiers mc_void mc_main '(' mc_String '[' ']' idf ')' $@2 block .
-
-    $défaut  réduction par utilisation de la règle 33 (method_declaration)
-
-
-état 149
-
-   76 return_statement: mc_return expression ';' .
+   76 return_statement: mc_return ';' .
 
     $défaut  réduction par utilisation de la règle 76 (return_statement)
 
 
+état 149
+
+   77 return_statement: mc_return expression . ';'
+
+    ';'  décalage et aller à l'état 158
+
+
 état 150
 
-   62 if_statement: mc_if '(' expression . ')' statement
-   63             | mc_if '(' expression . ')' statement mc_else statement
+   64 if_statement: mc_if '(' . expression ')' statement
+   65             | mc_if '(' . expression ')' statement mc_else statement
 
-    ')'  décalage et aller à l'état 156
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    expression                 aller à l'état 159
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 151
 
-   66 for_statement: mc_for '(' $@4 . for_init ';' for_cond ';' for_inc ')' $@5 statement
+   68 for_statement: mc_for '(' . $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    not         décalage et aller à l'état 62
-    idf         décalage et aller à l'état 127
-    chaine      décalage et aller à l'état 64
-    entier      décalage et aller à l'état 65
-    decimal     décalage et aller à l'état 66
-    '('         décalage et aller à l'état 67
+    $défaut  réduction par utilisation de la règle 66 ($@4)
 
-    $défaut  réduction par utilisation de la règle 69 (for_init)
-
-    type                       aller à l'état 128
-    declaration_statement      aller à l'état 157
-    for_init                   aller à l'état 158
-    expression                 aller à l'état 159
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $@4  aller à l'état 160
 
 
 état 152
 
-   74 while_statement: mc_while '(' expression . ')' statement
+   75 while_statement: mc_while '(' . expression ')' statement
 
-    ')'  décalage et aller à l'état 160
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    expression                 aller à l'état 161
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 153
 
-   77 io_statement: mc_System '.' mc_out . '.' mc_println '(' expression ')' ';'
+   78 io_statement: mc_System '.' . mc_out '.' mc_println '(' expression ')' ';'
 
-    '.'  décalage et aller à l'état 161
+    mc_out  décalage et aller à l'état 162
 
 
 état 154
 
-   60 declaration_statement: type idf '=' . expression ';'
+   61 declarator: idf .
+   62           | idf . '=' expression
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
+    '='  décalage et aller à l'état 163
 
-    expression                 aller à l'état 162
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 61 (declarator)
 
 
 état 155
 
-   59 declaration_statement: type idf ';' .
+   58 declaration_statement: type declarator_list . ';'
+   60 declarator_list: declarator_list . ',' declarator
 
-    $défaut  réduction par utilisation de la règle 59 (declaration_statement)
+    ','  décalage et aller à l'état 164
+    ';'  décalage et aller à l'état 165
 
 
 état 156
 
-   62 if_statement: mc_if '(' expression ')' . statement
-   63             | mc_if '(' expression ')' . statement mc_else statement
+   59 declarator_list: declarator .
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_return   décalage et aller à l'état 121
-    mc_if       décalage et aller à l'état 122
-    mc_for      décalage et aller à l'état 123
-    mc_while    décalage et aller à l'état 124
-    mc_System   décalage et aller à l'état 125
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    acco        décalage et aller à l'état 77
-    not         décalage et aller à l'état 62
-    idf         décalage et aller à l'état 127
-    chaine      décalage et aller à l'état 64
-    entier      décalage et aller à l'état 65
-    decimal     décalage et aller à l'état 66
-    '('         décalage et aller à l'état 67
-
-    type                       aller à l'état 128
-    block                      aller à l'état 129
-    statement                  aller à l'état 163
-    declaration_statement      aller à l'état 131
-    expression_statement       aller à l'état 132
-    if_statement               aller à l'état 133
-    for_statement              aller à l'état 134
-    while_statement            aller à l'état 135
-    return_statement           aller à l'état 136
-    io_statement               aller à l'état 137
-    expression                 aller à l'état 138
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 59 (declarator_list)
 
 
 état 157
 
-   67 for_init: declaration_statement .
+   63 expression_statement: expression ';' .
 
-    $défaut  réduction par utilisation de la règle 67 (for_init)
+    $défaut  réduction par utilisation de la règle 63 (expression_statement)
 
 
 état 158
 
-   66 for_statement: mc_for '(' $@4 for_init . ';' for_cond ';' for_inc ')' $@5 statement
+   77 return_statement: mc_return expression ';' .
 
-    ';'  décalage et aller à l'état 164
+    $défaut  réduction par utilisation de la règle 77 (return_statement)
 
 
 état 159
 
-   68 for_init: expression .
+   64 if_statement: mc_if '(' expression . ')' statement
+   65             | mc_if '(' expression . ')' statement mc_else statement
 
-    $défaut  réduction par utilisation de la règle 68 (for_init)
+    ')'  décalage et aller à l'état 166
 
 
 état 160
 
-   74 while_statement: mc_while '(' expression ')' . statement
+   68 for_statement: mc_for '(' $@4 . for_init ';' for_cond ';' for_inc ')' $@5 statement
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_return   décalage et aller à l'état 121
-    mc_if       décalage et aller à l'état 122
-    mc_for      décalage et aller à l'état 123
-    mc_while    décalage et aller à l'état 124
-    mc_System   décalage et aller à l'état 125
-    mc_boolean  décalage et aller à l'état 37
+    mc_void     décalage et aller à l'état 34
+    mc_double   décalage et aller à l'état 35
+    mc_int      décalage et aller à l'état 36
+    mc_float    décalage et aller à l'état 37
     mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    acco        décalage et aller à l'état 77
-    not         décalage et aller à l'état 62
-    idf         décalage et aller à l'état 127
-    chaine      décalage et aller à l'état 64
-    entier      décalage et aller à l'état 65
-    decimal     décalage et aller à l'état 66
-    '('         décalage et aller à l'état 67
+    mc_boolean  décalage et aller à l'état 39
+    mc_String   décalage et aller à l'état 40
+    idf         décalage et aller à l'état 47
 
-    type                       aller à l'état 128
-    block                      aller à l'état 129
-    statement                  aller à l'état 165
-    declaration_statement      aller à l'état 131
-    expression_statement       aller à l'état 132
-    if_statement               aller à l'état 133
-    for_statement              aller à l'état 134
-    while_statement            aller à l'état 135
-    return_statement           aller à l'état 136
-    io_statement               aller à l'état 137
-    expression                 aller à l'état 138
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    type      aller à l'état 167
+    for_init  aller à l'état 168
 
 
 état 161
 
-   77 io_statement: mc_System '.' mc_out '.' . mc_println '(' expression ')' ';'
+   75 while_statement: mc_while '(' expression . ')' statement
 
-    mc_println  décalage et aller à l'état 166
+    ')'  décalage et aller à l'état 169
 
 
 état 162
 
-   60 declaration_statement: type idf '=' expression . ';'
+   78 io_statement: mc_System '.' mc_out . '.' mc_println '(' expression ')' ';'
 
-    ';'  décalage et aller à l'état 167
+    '.'  décalage et aller à l'état 170
 
 
 état 163
 
-   62 if_statement: mc_if '(' expression ')' statement .
-   63             | mc_if '(' expression ')' statement . mc_else statement
+   62 declarator: idf '=' . expression
 
-    mc_else  décalage et aller à l'état 168
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
 
-    $défaut  réduction par utilisation de la règle 62 (if_statement)
+    expression                 aller à l'état 171
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 164
 
-   66 for_statement: mc_for '(' $@4 for_init ';' . for_cond ';' for_inc ')' $@5 statement
+   60 declarator_list: declarator_list ',' . declarator
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
+    idf  décalage et aller à l'état 154
 
-    $défaut  réduction par utilisation de la règle 71 (for_cond)
-
-    for_cond                   aller à l'état 169
-    expression                 aller à l'état 170
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    declarator  aller à l'état 172
 
 
 état 165
 
-   74 while_statement: mc_while '(' expression ')' statement .
+   58 declaration_statement: type declarator_list ';' .
 
-    $défaut  réduction par utilisation de la règle 74 (while_statement)
+    $défaut  réduction par utilisation de la règle 58 (declaration_statement)
 
 
 état 166
 
-   77 io_statement: mc_System '.' mc_out '.' mc_println . '(' expression ')' ';'
+   64 if_statement: mc_if '(' expression ')' . statement
+   65             | mc_if '(' expression ')' . statement mc_else statement
 
-    '('  décalage et aller à l'état 171
+    mc_void      décalage et aller à l'état 34
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    mc_return    décalage et aller à l'état 129
+    mc_if        décalage et aller à l'état 130
+    mc_for       décalage et aller à l'état 131
+    mc_while     décalage et aller à l'état 132
+    mc_System    décalage et aller à l'état 133
+    mc_double    décalage et aller à l'état 35
+    acco         décalage et aller à l'état 100
+    not          décalage et aller à l'état 60
+    mc_int       décalage et aller à l'état 36
+    mc_float     décalage et aller à l'état 37
+    mc_char      décalage et aller à l'état 38
+    mc_boolean   décalage et aller à l'état 39
+    mc_String    décalage et aller à l'état 40
+    idf          décalage et aller à l'état 135
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    type                       aller à l'état 136
+    block                      aller à l'état 137
+    statement                  aller à l'état 173
+    declaration_statement      aller à l'état 139
+    expression_statement       aller à l'état 140
+    if_statement               aller à l'état 141
+    for_statement              aller à l'état 142
+    while_statement            aller à l'état 143
+    return_statement           aller à l'état 144
+    io_statement               aller à l'état 145
+    expression                 aller à l'état 146
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 167
 
-   60 declaration_statement: type idf '=' expression ';' .
+   69 for_init: type . idf '=' expression
 
-    $défaut  réduction par utilisation de la règle 60 (declaration_statement)
+    idf  décalage et aller à l'état 174
 
 
 état 168
 
-   63 if_statement: mc_if '(' expression ')' statement mc_else . statement
+   68 for_statement: mc_for '(' $@4 for_init . ';' for_cond ';' for_inc ')' $@5 statement
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_return   décalage et aller à l'état 121
-    mc_if       décalage et aller à l'état 122
-    mc_for      décalage et aller à l'état 123
-    mc_while    décalage et aller à l'état 124
-    mc_System   décalage et aller à l'état 125
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    acco        décalage et aller à l'état 77
-    not         décalage et aller à l'état 62
-    idf         décalage et aller à l'état 127
-    chaine      décalage et aller à l'état 64
-    entier      décalage et aller à l'état 65
-    decimal     décalage et aller à l'état 66
-    '('         décalage et aller à l'état 67
-
-    type                       aller à l'état 128
-    block                      aller à l'état 129
-    statement                  aller à l'état 172
-    declaration_statement      aller à l'état 131
-    expression_statement       aller à l'état 132
-    if_statement               aller à l'état 133
-    for_statement              aller à l'état 134
-    while_statement            aller à l'état 135
-    return_statement           aller à l'état 136
-    io_statement               aller à l'état 137
-    expression                 aller à l'état 138
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    ';'  décalage et aller à l'état 175
 
 
 état 169
 
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond . ';' for_inc ')' $@5 statement
+   75 while_statement: mc_while '(' expression ')' . statement
 
-    ';'  décalage et aller à l'état 173
+    mc_void      décalage et aller à l'état 34
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    mc_return    décalage et aller à l'état 129
+    mc_if        décalage et aller à l'état 130
+    mc_for       décalage et aller à l'état 131
+    mc_while     décalage et aller à l'état 132
+    mc_System    décalage et aller à l'état 133
+    mc_double    décalage et aller à l'état 35
+    acco         décalage et aller à l'état 100
+    not          décalage et aller à l'état 60
+    mc_int       décalage et aller à l'état 36
+    mc_float     décalage et aller à l'état 37
+    mc_char      décalage et aller à l'état 38
+    mc_boolean   décalage et aller à l'état 39
+    mc_String    décalage et aller à l'état 40
+    idf          décalage et aller à l'état 135
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    type                       aller à l'état 136
+    block                      aller à l'état 137
+    statement                  aller à l'état 176
+    declaration_statement      aller à l'état 139
+    expression_statement       aller à l'état 140
+    if_statement               aller à l'état 141
+    for_statement              aller à l'état 142
+    while_statement            aller à l'état 143
+    return_statement           aller à l'état 144
+    io_statement               aller à l'état 145
+    expression                 aller à l'état 146
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
 
 
 état 170
+
+   78 io_statement: mc_System '.' mc_out '.' . mc_println '(' expression ')' ';'
+
+    mc_println  décalage et aller à l'état 177
+
+
+état 171
+
+   62 declarator: idf '=' expression .
+
+    $défaut  réduction par utilisation de la règle 62 (declarator)
+
+
+état 172
+
+   60 declarator_list: declarator_list ',' declarator .
+
+    $défaut  réduction par utilisation de la règle 60 (declarator_list)
+
+
+état 173
+
+   64 if_statement: mc_if '(' expression ')' statement .
+   65             | mc_if '(' expression ')' statement . mc_else statement
+
+    mc_else  décalage et aller à l'état 178
+
+    $défaut  réduction par utilisation de la règle 64 (if_statement)
+
+
+état 174
+
+   69 for_init: type idf . '=' expression
+
+    '='  décalage et aller à l'état 179
+
+
+état 175
+
+   68 for_statement: mc_for '(' $@4 for_init ';' . for_cond ';' for_inc ')' $@5 statement
+
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    $défaut  réduction par utilisation de la règle 71 (for_cond)
+
+    for_cond                   aller à l'état 180
+    expression                 aller à l'état 181
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
+état 176
+
+   75 while_statement: mc_while '(' expression ')' statement .
+
+    $défaut  réduction par utilisation de la règle 75 (while_statement)
+
+
+état 177
+
+   78 io_statement: mc_System '.' mc_out '.' mc_println . '(' expression ')' ';'
+
+    '('  décalage et aller à l'état 182
+
+
+état 178
+
+   65 if_statement: mc_if '(' expression ')' statement mc_else . statement
+
+    mc_void      décalage et aller à l'état 34
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    mc_return    décalage et aller à l'état 129
+    mc_if        décalage et aller à l'état 130
+    mc_for       décalage et aller à l'état 131
+    mc_while     décalage et aller à l'état 132
+    mc_System    décalage et aller à l'état 133
+    mc_double    décalage et aller à l'état 35
+    acco         décalage et aller à l'état 100
+    not          décalage et aller à l'état 60
+    mc_int       décalage et aller à l'état 36
+    mc_float     décalage et aller à l'état 37
+    mc_char      décalage et aller à l'état 38
+    mc_boolean   décalage et aller à l'état 39
+    mc_String    décalage et aller à l'état 40
+    idf          décalage et aller à l'état 135
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    type                       aller à l'état 136
+    block                      aller à l'état 137
+    statement                  aller à l'état 183
+    declaration_statement      aller à l'état 139
+    expression_statement       aller à l'état 140
+    if_statement               aller à l'état 141
+    for_statement              aller à l'état 142
+    while_statement            aller à l'état 143
+    return_statement           aller à l'état 144
+    io_statement               aller à l'état 145
+    expression                 aller à l'état 146
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
+état 179
+
+   69 for_init: type idf '=' . expression
+
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    expression                 aller à l'état 184
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
+    additive_expression        aller à l'état 72
+    multiplicative_expression  aller à l'état 73
+
+
+état 180
+
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond . ';' for_inc ')' $@5 statement
+
+    ';'  décalage et aller à l'état 185
+
+
+état 181
 
    70 for_cond: expression .
 
     $défaut  réduction par utilisation de la règle 70 (for_cond)
 
 
-état 171
+état 182
 
-   77 io_statement: mc_System '.' mc_out '.' mc_println '(' . expression ')' ';'
+   78 io_statement: mc_System '.' mc_out '.' mc_println '(' . expression ')' ';'
 
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    not          décalage et aller à l'état 60
+    idf          décalage et aller à l'état 61
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
 
-    expression                 aller à l'état 174
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
+    expression                 aller à l'état 186
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
     additive_expression        aller à l'état 72
     multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
 
 
-état 172
+état 183
 
-   63 if_statement: mc_if '(' expression ')' statement mc_else statement .
+   65 if_statement: mc_if '(' expression ')' statement mc_else statement .
 
-    $défaut  réduction par utilisation de la règle 63 (if_statement)
-
-
-état 173
-
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' . for_inc ')' $@5 statement
-
-    not      décalage et aller à l'état 62
-    idf      décalage et aller à l'état 63
-    chaine   décalage et aller à l'état 64
-    entier   décalage et aller à l'état 65
-    decimal  décalage et aller à l'état 66
-    '('      décalage et aller à l'état 67
-
-    $défaut  réduction par utilisation de la règle 73 (for_inc)
-
-    for_inc                    aller à l'état 175
-    expression                 aller à l'état 176
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
-    additive_expression        aller à l'état 72
-    multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
+    $défaut  réduction par utilisation de la règle 65 (if_statement)
 
 
-état 174
+état 184
 
-   77 io_statement: mc_System '.' mc_out '.' mc_println '(' expression . ')' ';'
+   69 for_init: type idf '=' expression .
 
-    ')'  décalage et aller à l'état 177
-
-
-état 175
-
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc . ')' $@5 statement
-
-    ')'  décalage et aller à l'état 178
+    $défaut  réduction par utilisation de la règle 69 (for_init)
 
 
-état 176
+état 185
 
-   72 for_inc: expression .
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' . for_inc ')' $@5 statement
+
+    idf  décalage et aller à l'état 187
+
+    $défaut  réduction par utilisation de la règle 74 (for_inc)
+
+    for_inc  aller à l'état 188
+
+
+état 186
+
+   78 io_statement: mc_System '.' mc_out '.' mc_println '(' expression . ')' ';'
+
+    ')'  décalage et aller à l'état 189
+
+
+état 187
+
+   72 for_inc: idf . inc
+   73        | idf . dec
+
+    inc  décalage et aller à l'état 190
+    dec  décalage et aller à l'état 191
+
+
+état 188
+
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc . ')' $@5 statement
+
+    ')'  décalage et aller à l'état 192
+
+
+état 189
+
+   78 io_statement: mc_System '.' mc_out '.' mc_println '(' expression ')' . ';'
+
+    ';'  décalage et aller à l'état 193
+
+
+état 190
+
+   72 for_inc: idf inc .
 
     $défaut  réduction par utilisation de la règle 72 (for_inc)
 
 
-état 177
+état 191
 
-   77 io_statement: mc_System '.' mc_out '.' mc_println '(' expression ')' . ';'
+   73 for_inc: idf dec .
 
-    ';'  décalage et aller à l'état 179
-
-
-état 178
-
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' . $@5 statement
-
-    $défaut  réduction par utilisation de la règle 65 ($@5)
-
-    $@5  aller à l'état 180
+    $défaut  réduction par utilisation de la règle 73 (for_inc)
 
 
-état 179
+état 192
 
-   77 io_statement: mc_System '.' mc_out '.' mc_println '(' expression ')' ';' .
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' . $@5 statement
 
-    $défaut  réduction par utilisation de la règle 77 (io_statement)
+    $défaut  réduction par utilisation de la règle 67 ($@5)
+
+    $@5  aller à l'état 194
 
 
-état 180
+état 193
 
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 . statement
+   78 io_statement: mc_System '.' mc_out '.' mc_println '(' expression ')' ';' .
 
-    mc_void     décalage et aller à l'état 49
-    mc_int      décalage et aller à l'état 35
-    mc_String   décalage et aller à l'état 36
-    mc_return   décalage et aller à l'état 121
-    mc_if       décalage et aller à l'état 122
-    mc_for      décalage et aller à l'état 123
-    mc_while    décalage et aller à l'état 124
-    mc_System   décalage et aller à l'état 125
-    mc_boolean  décalage et aller à l'état 37
-    mc_char     décalage et aller à l'état 38
-    mc_double   décalage et aller à l'état 39
-    mc_float    décalage et aller à l'état 40
-    acco        décalage et aller à l'état 77
-    not         décalage et aller à l'état 62
-    idf         décalage et aller à l'état 127
-    chaine      décalage et aller à l'état 64
-    entier      décalage et aller à l'état 65
-    decimal     décalage et aller à l'état 66
-    '('         décalage et aller à l'état 67
+    $défaut  réduction par utilisation de la règle 78 (io_statement)
 
-    type                       aller à l'état 128
-    block                      aller à l'état 129
-    statement                  aller à l'état 181
-    declaration_statement      aller à l'état 131
-    expression_statement       aller à l'état 132
-    if_statement               aller à l'état 133
-    for_statement              aller à l'état 134
-    while_statement            aller à l'état 135
-    return_statement           aller à l'état 136
-    io_statement               aller à l'état 137
-    expression                 aller à l'état 138
-    assignment_expression      aller à l'état 69
-    logical_expression         aller à l'état 70
-    comparison_expression      aller à l'état 71
+
+état 194
+
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 . statement
+
+    mc_void      décalage et aller à l'état 34
+    mc_this      décalage et aller à l'état 58
+    mc_new       décalage et aller à l'état 59
+    mc_return    décalage et aller à l'état 129
+    mc_if        décalage et aller à l'état 130
+    mc_for       décalage et aller à l'état 131
+    mc_while     décalage et aller à l'état 132
+    mc_System    décalage et aller à l'état 133
+    mc_double    décalage et aller à l'état 35
+    acco         décalage et aller à l'état 100
+    not          décalage et aller à l'état 60
+    mc_int       décalage et aller à l'état 36
+    mc_float     décalage et aller à l'état 37
+    mc_char      décalage et aller à l'état 38
+    mc_boolean   décalage et aller à l'état 39
+    mc_String    décalage et aller à l'état 40
+    idf          décalage et aller à l'état 135
+    chaine       décalage et aller à l'état 62
+    entier       décalage et aller à l'état 63
+    decimal_num  décalage et aller à l'état 64
+    '('          décalage et aller à l'état 65
+
+    type                       aller à l'état 136
+    block                      aller à l'état 137
+    statement                  aller à l'état 195
+    declaration_statement      aller à l'état 139
+    expression_statement       aller à l'état 140
+    if_statement               aller à l'état 141
+    for_statement              aller à l'état 142
+    while_statement            aller à l'état 143
+    return_statement           aller à l'état 144
+    io_statement               aller à l'état 145
+    expression                 aller à l'état 146
+    assignment_expression      aller à l'état 67
+    assignable                 aller à l'état 68
+    logical_expression         aller à l'état 69
+    comparison_expression      aller à l'état 70
+    primary_expression         aller à l'état 71
     additive_expression        aller à l'état 72
     multiplicative_expression  aller à l'état 73
-    primary_expression         aller à l'état 74
 
 
-état 181
+état 195
 
-   66 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement .
+   68 for_statement: mc_for '(' $@4 for_init ';' for_cond ';' for_inc ')' $@5 statement .
 
-    $défaut  réduction par utilisation de la règle 66 (for_statement)
+    $défaut  réduction par utilisation de la règle 68 (for_statement)
